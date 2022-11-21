@@ -11,7 +11,7 @@ const playerSchema = new mongoose.Schema(
 		},
         gold: Number,
         season: {
-            String,
+            type: String,
             required: true,
             enum: ['spring', 'summer', 'autumn', 'winter']
         },
