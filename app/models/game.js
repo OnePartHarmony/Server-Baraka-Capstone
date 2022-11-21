@@ -1,3 +1,4 @@
+const { ObjectId } = require('mongodb')
 const mongoose = require('mongoose')
 
 const gameSchema = new mongoose.Schema(
@@ -6,16 +7,21 @@ const gameSchema = new mongoose.Schema(
 			type: String,
 			required: true,
 		},
-		territories: [],
-		players: [],
+		territories: [{ type: ObjectId, ref: 'Territories' }],
+		players: [{ type: ObjectId, ref: 'User' }],
         currentPhase: {
-            String,
-            enum: ['advance', 'battle', 'excise', 'muster', 'sow']
+            type: String,
+            enum: ['advance', 'battle', 'excise', 'muster', 'sow'],
         },
         currentSeason: {
-            String,
-            enum: ['spring', 'summer', 'autumn', 'winter']
+            type: String,
+            enum: ['spring', 'summer', 'autumn', 'winter'],
         },
+        host: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'User',
+			required: false,
+		},
     },
 	{
 		timestamps: true,

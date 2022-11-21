@@ -2,12 +2,13 @@ const mongoose = require('mongoose')
 
 const territorySchema = new mongoose.Schema(
 	{
+        number: Number,
 		type: {
 			type: String,
 			required: true,
             enum: ['empty', 'field', 'farmland', 'water', 'mountain']
 		},
-		units: [],
+		units: [{ type: ObjectId, ref: 'Unit' }],
         wealth: Number,
 		abundance: Number,
         adjacents: [],
