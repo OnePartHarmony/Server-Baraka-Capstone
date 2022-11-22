@@ -17,7 +17,7 @@ const commandSchema = new mongoose.Schema(
 			ref: 'Teritory',
 			required: true,
 		},
-        soliders: Number,
+        soldiers: Number,
         priest: Number,
     },
 	{

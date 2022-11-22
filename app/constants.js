@@ -38,4 +38,20 @@ const adjacents = [
     [31,32,35]
 ]
 
-module.exports = adjacents
+const orderOfSeasons = ['spring', 'summer', 'autumn', 'winter']
+
+const orderOfPhases = ['advance', 'excise', 'muster', 'sow']
+
+const unitStats = (type) => {
+    return {
+        upkeepCost: 2,
+        strength: type === 'soldier'? 2 : 1
+    }
+}
+
+module.exports = {
+    adjacents,
+    orderOfSeasons,
+    orderOfPhases,
+    unitStats
+}

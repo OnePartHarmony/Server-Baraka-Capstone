@@ -1,4 +1,4 @@
-const adjacents = require('../constants')
+const { adjacents } = require('../constants')
 
 
 const initializeMap = (gameId) => {
