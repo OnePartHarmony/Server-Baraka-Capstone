@@ -80,9 +80,6 @@ router.get('/games/:id', requireToken, (req, res, next) => {
                             }
                     },
                 },
-            
-            
-            
         })
         .populate({
             path: 'territories',    
@@ -228,10 +225,33 @@ router.delete('/games/:id', requireToken, (req, res, next) => {
 		.then(handle404)
 		.then((game) => {
 			// throw an error if current user doesn't own `game`
-			requireOwnership(req, game)
-			// delete the game ONLY IF the above didn't throw
-			game.deleteOne()
+			// requireOwnership(req, game)
+			game.territories.forEach(territory => {
+                Territory.findById(territory)
+                    .then(territory => {
+                        territory.units.forEach(unit => {
+                            Unit.findById(unit)
+                                .then(unit => {
+                                    unit.deleteOne()
+                                })
+                        })
+                        return territory
+                    })
+                    .then(territory => {
+                        territory.deleteOne()
+                    })
+            })
+            game.players.forEach(player => {
+                Player.findById(player)
+                    .then(player => {
+                        player.deleteOne()
+                    })
+            })
+            return game
 		})
+        .then(game => {
+			game.deleteOne()
+        })
 		// send back 204 and no content if the deletion succeeded
 		.then(() => res.sendStatus(204))
 		// if an error occurs, pass it to the handler
