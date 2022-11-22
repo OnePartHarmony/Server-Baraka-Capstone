@@ -32,6 +32,9 @@ const adjacents = require('../constants')
 
 const generateRoomId = () => {
     const randId = Math.floor(Math.random()*100000)
+    if (randId < 10000) {
+        randId += 10000
+    }
     if (Game.find({ roomId: randId}).length > 0) {
         generateRoomId
     } else{
@@ -61,6 +64,20 @@ router.get('/games', requireToken, (req, res, next) => {
 router.get('/games/:id', requireToken, (req, res, next) => {
 	// req.params.id will be set based on the `:id` in the route
 	Game.findById(req.params.id)
+        .populate('players')
+        .populate({
+            path : 'territories',
+                populate : {
+                    path : 'units',
+                    populate : {
+                        path : 'commander', select: 'username'
+                    }
+                },
+
+                populate : {
+                    path : 'controlledBy', select: 'username'
+                }
+        })
 		.then(handle404)
 		// if `findById` is succesful, respond with 200 and "game" JSON
 		.then((game) => res.status(200).json({ game: game.toObject() }))
@@ -122,11 +139,6 @@ router.patch('/games/:id/initialize', (req, res, next) => {
                                     })
                             })
                     })
-
-        
-    
-    
-    
                 return res.sendStatus(201)
             } else {
                 return res.sendStatus(204)

@@ -37,3 +37,5 @@ const adjacents = [
     [30,31,34,36],
     [31,32,35]
 ]
+
+module.exports = adjacents

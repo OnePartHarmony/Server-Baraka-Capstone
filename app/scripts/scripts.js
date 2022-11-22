@@ -3,7 +3,7 @@ const adjacents = require('../constants')
 
 const initializeMap = (gameId) => {
     const arr = []
-    for (let i = 0; i < 37; i++) {
+    for (let i = 0; i < adjacents.length; i++) {
         arr.push(
             {
                type: 'field',
