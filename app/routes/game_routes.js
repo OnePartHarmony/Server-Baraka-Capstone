@@ -78,12 +78,20 @@ router.get('/games/:id', requireToken, (req, res, next) => {
                             populate : {
                                 path: 'user', select : 'username'
                             }
-                    }
+                    },
                 },
-
-                // populate : {
-                //     path : 'controlledBy'
-                // }
+            
+            
+            
+        })
+        .populate({
+            path: 'territories',    
+                populate : {
+                    path : 'controlledBy',
+                            populate : {
+                                path: 'user', select : 'username'
+                            }
+                }
         })
 		.then(handle404)
 		// if `findById` is succesful, respond with 200 and "game" JSON
