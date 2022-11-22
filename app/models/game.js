@@ -7,7 +7,7 @@ const gameSchema = new mongoose.Schema(
 			type: String,
 			required: true,
 		},
-		territories: [{ type: ObjectId, ref: 'Territories' }],
+		territories: [{ type: ObjectId, ref: 'Territory' }],
 		players: [{ type: ObjectId, ref: 'User' }],
         currentPhase: {
             type: String,

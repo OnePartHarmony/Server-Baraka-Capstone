@@ -5,7 +5,7 @@ const passport = require('passport')
 
 // pull in Mongoose model for games
 const Game = require('../models/game')
-
+const Territory = require('../models/territory')
 // this is a collection of methods that help us detect situations when we need
 // to throw a custom error
 const customErrors = require('../../lib/custom_errors')
@@ -27,9 +27,14 @@ const requireToken = passport.authenticate('bearer', { session: false })
 // instantiate a router (mini app that only handles routes)
 const router = express.Router()
 
+const initializeMap = require('../scripts/scripts')
+const adjacents = require('../constants')
 
 const generateRoomId = () => {
     const randId = Math.floor(Math.random()*100000)
+    if (randId < 10000) {
+        randId += 10000
+    }
     if (Game.find({ roomId: randId}).length > 0) {
         generateRoomId
     } else{
@@ -59,6 +64,20 @@ router.get('/games', requireToken, (req, res, next) => {
 router.get('/games/:id', requireToken, (req, res, next) => {
 	// req.params.id will be set based on the `:id` in the route
 	Game.findById(req.params.id)
+        .populate('players')
+        .populate({
+            path : 'territories',
+                populate : {
+                    path : 'units',
+                    populate : {
+                        path : 'commander', select: 'username'
+                    }
+                },
+
+                populate : {
+                    path : 'controlledBy', select: 'username'
+                }
+        })
 		.then(handle404)
 		// if `findById` is succesful, respond with 200 and "game" JSON
 		.then((game) => res.status(200).json({ game: game.toObject() }))
@@ -75,8 +94,14 @@ router.post('/games', requireToken, (req, res, next) => {
     req.body.game.host = req.user.id
     console.log(req.body.game)
 	Game.create(req.body.game)
+        .then((game) => {
+            
+            return game
+        })
 		// respond to succesful `create` with status 201 and JSON of new "game"
 		.then((game) => {
+            
+            console.log(game)
 			res.status(201).json({ game: game.toObject() })
 		})
 		// if an error occurs, pass it off to our error handler
@@ -84,6 +109,43 @@ router.post('/games', requireToken, (req, res, next) => {
 		// can send an error message back to the client
 		.catch(next)
 })
+
+
+//Intialize Game Board
+//PATCH /games/<id>/initialize
+router.patch('/games/:id/initialize', (req, res, next) => {
+    const gameId = req.params.id
+    // const game = Game.findById(gameId)
+    //     .then(game => console.log(game))
+    // // console.log('i am game', game)
+    // let numOfTerrInGame
+    const addTerritories = initializeMap(gameId)
+    Game.findById(gameId)
+        .then(game => {
+            console.log(game.territories.length)
+            return game.territories.length
+        })
+        .then(num => {
+            console.log(num)
+            if (num < addTerritories.length) {
+                    addTerritories.forEach(territory => {
+                        Territory.create(territory)
+                            .then(territory => {
+                                let terrId = territory._id
+                                Game.findById(gameId)
+                                    .then(game => {
+                                        game.territories.push(terrId)
+                                        return game.save()
+                                    })
+                            })
+                    })
+                return res.sendStatus(201)
+            } else {
+                return res.sendStatus(204)
+            }
+    })
+})
+
 
 // UPDATE
 // PATCH /games/5a7db6c74d55bc51bdf39793
