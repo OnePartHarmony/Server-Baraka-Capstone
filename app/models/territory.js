@@ -8,16 +8,19 @@ const territorySchema = new mongoose.Schema(
 			required: true,
             enum: ['empty', 'field', 'farmland', 'water', 'mountain']
 		},
-		units: [{ type: ObjectId, ref: 'Unit' }],
+		units: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Unit' }],
         wealth: Number,
 		abundance: Number,
         adjacents: [],
         controlledBy: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: 'Player',
-			required: true,
 		},
         population: Number,
+        gameId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'game'
+        }
     },
 	{
 		timestamps: true,
