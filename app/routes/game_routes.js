@@ -6,6 +6,8 @@ const passport = require('passport')
 // pull in Mongoose model for games
 const Game = require('../models/game')
 const Territory = require('../models/territory')
+const Unit = require('../models/unit')
+const Player = require('../models/player')
 // this is a collection of methods that help us detect situations when we need
 // to throw a custom error
 const customErrors = require('../../lib/custom_errors')
@@ -29,6 +31,8 @@ const router = express.Router()
 
 const initializeMap = require('../scripts/scripts')
 const adjacents = require('../constants')
+const unit = require('../models/unit')
+const player = require('../models/player')
 
 const generateRoomId = () => {
     const randId = Math.floor(Math.random()*100000)
@@ -70,12 +74,23 @@ router.get('/games/:id', requireToken, (req, res, next) => {
                 populate : {
                     path : 'units',
                     populate : {
-                        path : 'commander', select: 'username'
-                    }
+                        path : 'commander',
+                            populate : {
+                                path: 'user', select : 'username'
+                            }
+                    },
                 },
-
+            
+            
+            
+        })
+        .populate({
+            path: 'territories',    
                 populate : {
-                    path : 'controlledBy', select: 'username'
+                    path : 'controlledBy',
+                            populate : {
+                                path: 'user', select : 'username'
+                            }
                 }
         })
 		.then(handle404)
@@ -89,7 +104,7 @@ router.get('/games/:id', requireToken, (req, res, next) => {
 // POST /games
 router.post('/games', requireToken, (req, res, next) => {
 	// set owner of new game to be current user
-    req.body.game.players = [req.user.id]
+    // req.body.game.players = [req.user.id]
 	req.body.game.roomId = generateRoomId()
     req.body.game.host = req.user.id
     console.log(req.body.game)
@@ -146,6 +161,42 @@ router.patch('/games/:id/initialize', (req, res, next) => {
     })
 })
 
+// POST
+// Add Unit to map
+router.post('/games/:id/:playerId/add_unit/:location', requireToken, (req, res, next) => {
+    const gameId = req.params.id
+    const location = req.params.location
+    req.body.unit.commander = req.params.playerId
+    Unit.create(req.body.unit)
+        .then((unit) => {
+            Territory.findOne({gameId: gameId, number: location})
+                .then(territory => {
+                    territory.units.push(unit._id)
+                    territory.save()
+                })
+        })
+        .then(unit => {
+            res.status(201).json({ unit: unit })
+        })
+})
+
+// POST
+// add Player to game
+router.post('/games/:id/add_player/', requireToken, (req, res, next) => {
+    const gameId = req.params.id
+    req.body.player.user = req.user.id
+    Player.create(req.body.player)
+        .then((player) => {
+            Game.findById(gameId)
+                .then(game => {
+                    game.players.push(player._id)
+                    game.save()
+                })
+        })
+        .then(player => {
+            res.status(201).json({ player: player })
+        })
+})
 
 // UPDATE
 // PATCH /games/5a7db6c74d55bc51bdf39793

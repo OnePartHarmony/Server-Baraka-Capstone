@@ -9,14 +9,22 @@ const playerSchema = new mongoose.Schema(
 			ref: 'User',
 			required: true,
 		},
-        gold: Number,
+        gold: {
+            type: Number,
+            default: 0,
+            required: true,
+        },
         season: {
             type: String,
             required: true,
             enum: ['spring', 'summer', 'autumn', 'winter']
         },
-        score: Number,
-        commands: [commandsSchema],
+        score: {
+            type: Number,
+            default: 0,
+            required: true
+        },
+        commands: [commandSchema],
     },
 	{
 		timestamps: true,

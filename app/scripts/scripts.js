@@ -6,12 +6,13 @@ const initializeMap = (gameId) => {
     for (let i = 0; i < adjacents.length; i++) {
         arr.push(
             {
-               type: 'field',
-               wealth: 2,
-               abundance: 2,
-               adjacents: adjacents[i],
-               population: 0,
-               gameId: gameId 
+                number: i,
+                type: 'field',
+                wealth: 2,
+                abundance: 2,
+                adjacents: adjacents[i],
+                population: 0,
+                gameId: gameId 
             }
         )
     }
