@@ -5,10 +5,14 @@ const unitSchema = new mongoose.Schema(
 		type: {
 			type: String,
 			required: true,
-            enum: ['solider', 'priest']
+            enum: ['soldier', 'priest']
 		},
         strength: Number,
-		isFatigued: Boolean,
+		isFatigued: {
+            type: Boolean,
+            required: true,
+            default: false
+        },
         commander: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: 'Player',

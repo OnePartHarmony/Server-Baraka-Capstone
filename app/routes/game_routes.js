@@ -12,6 +12,8 @@ const Player = require('../models/player')
 // to throw a custom error
 const customErrors = require('../../lib/custom_errors')
 
+const { unitStats } = require('../constants')
+
 // we'll use this function to send 404 when non-existant document is requested
 const handle404 = customErrors.handle404
 // we'll use this function to send 401 when a user tries to modify a resource
@@ -164,6 +166,9 @@ router.post('/games/:id/:playerId/add_unit/:location', requireToken, (req, res, 
     const gameId = req.params.id
     const location = req.params.location
     req.body.unit.commander = req.params.playerId
+    const defaultStats = unitStats(req.body.unit.type)
+    req.body.unit.upkeepCost = defaultStats.upkeepCost
+    req.body.unit.strength = defaultStats.strength
     Unit.create(req.body.unit)
         .then((unit) => {
             Territory.findOne({gameId: gameId, number: location})
