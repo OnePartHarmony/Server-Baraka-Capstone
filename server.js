@@ -1,4 +1,4 @@
-// import { Server } from 'socket.io'
+// require necessary NPM packages
 const express = require('express')
 const mongoose = require('mongoose')
 const cors = require('cors')
