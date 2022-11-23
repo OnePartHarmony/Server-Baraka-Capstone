@@ -1,4 +1,4 @@
-// require necessary NPM packages
+// import { Server } from 'socket.io'
 const express = require('express')
 const mongoose = require('mongoose')
 const cors = require('cors')
@@ -75,10 +75,22 @@ app.use(gameRoutes)
 // passed any error messages from them
 app.use(errorHandler)
 
-// run API on designated port (4741 in this case)
-app.listen(port, () => {
+
+
+// // create server by running API on designated port
+const httpServer = app.listen(port, () => {
 	console.log('listening on port ' + port)
 })
 
-// needed for testing
-module.exports = app
+// // use API server to create socket server instance on same port
+const io = require('socket.io')(httpServer, {
+  path: '/baraka-socket/'
+})
+
+io.on("connection", (socket) => {
+	console.log("socket connected")
+	// socket.emit('connected', { message: "You are connected!" })
+})
+
+
+module.exports = { app: app, io: io }
