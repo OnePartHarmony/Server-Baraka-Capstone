@@ -9,12 +9,12 @@ const commandSchema = new mongoose.Schema(
         },
         originTerritory: {
 			type: mongoose.Schema.Types.ObjectId,
-			ref: 'Teritory',
+			ref: 'Territory',
 			required: true,
 		},
         newTerritory: {
 			type: mongoose.Schema.Types.ObjectId,
-			ref: 'Teritory',
+			ref: 'Territory',
 			required: true,
 		},
         soldiers: Number,

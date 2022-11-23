@@ -42,6 +42,8 @@ const orderOfSeasons = ['spring', 'summer', 'autumn', 'winter']
 
 const orderOfPhases = ['advance', 'excise', 'muster', 'sow']
 
+const biomes = ['field', 'farmland', 'mountain', 'water']
+
 const unitStats = (type) => {
     return {
         upkeepCost: 2,
@@ -53,5 +55,6 @@ module.exports = {
     adjacents,
     orderOfSeasons,
     orderOfPhases,
+    biomes,
     unitStats
 }
