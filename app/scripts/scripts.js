@@ -22,7 +22,7 @@ const initializeMap = (gameId) => {
             case 'field':
                 wealth = randomRange(1,2)
                 abundance = randomRange(2,3)
-                population = randomRange(1,2)
+                population = randomRange(1,3)
                 break
             case 'farmland':
                 wealth = randomRange(3,5)
@@ -45,6 +45,7 @@ const initializeMap = (gameId) => {
                 abundance: abundance,
                 adjacents: adjacents[i],
                 population: population,
+                // population number of peasants should be pushed to this object's units field
                 gameId: gameId 
             }
         )
@@ -53,5 +54,7 @@ const initializeMap = (gameId) => {
     return arr    
 }
 
+const 
 
-module.exports = initializeMap
+
+module.exports = initializeMap, randomRange

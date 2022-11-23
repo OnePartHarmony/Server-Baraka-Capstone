@@ -33,8 +33,7 @@ const router = express.Router()
 
 const initializeMap = require('../scripts/scripts')
 const adjacents = require('../constants')
-const unit = require('../models/unit')
-const player = require('../models/player')
+
 
 const generateRoomId = () => {
     const randId = Math.floor(Math.random()*100000)
