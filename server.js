@@ -36,10 +36,10 @@ mongoose.connect(db, {
 const app = express()
 
 // set CORS headers on response from this API using the `cors` NPM package
-// `CLIENT_ORIGIN` is an environment variable that will be set on Heroku
 app.use(
 	cors({
 		origin: process.env.CLIENT_ORIGIN || `http://localhost:${clientDevPort}`,
+		optionsSuccessStatus: 200 
 	})
 )
 
@@ -84,12 +84,15 @@ const httpServer = app.listen(port, () => {
 
 // // use API server to create socket server instance on same port
 const io = require('socket.io')(httpServer, {
-  path: '/baraka-socket/'
+	cors: ({
+		origin: process.env.CLIENT_ORIGIN || `http://localhost:${clientDevPort}`,
+		optionsSuccessStatus: 200 
+	}),
+	path: '/baraka-socket/'
 })
 
 io.on("connection", (socket) => {
-	console.log("socket connected")
-	// socket.emit('connected', { message: "You are connected!" })
+	socket.emit('woohoo', { message: "You are connected!" })
 })
 
 
