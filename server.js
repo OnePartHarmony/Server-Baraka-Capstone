@@ -36,10 +36,10 @@ mongoose.connect(db, {
 const app = express()
 
 // set CORS headers on response from this API using the `cors` NPM package
-// `CLIENT_ORIGIN` is an environment variable that will be set on Heroku
 app.use(
 	cors({
 		origin: process.env.CLIENT_ORIGIN || `http://localhost:${clientDevPort}`,
+		optionsSuccessStatus: 200 
 	})
 )
 
@@ -75,10 +75,25 @@ app.use(gameRoutes)
 // passed any error messages from them
 app.use(errorHandler)
 
-// run API on designated port (4741 in this case)
-app.listen(port, () => {
+
+
+// // create server by running API on designated port
+const httpServer = app.listen(port, () => {
 	console.log('listening on port ' + port)
 })
 
-// needed for testing
-module.exports = app
+// // use API server to create socket server instance on same port
+const io = require('socket.io')(httpServer, {
+	cors: ({
+		origin: process.env.CLIENT_ORIGIN || `http://localhost:${clientDevPort}`,
+		optionsSuccessStatus: 200 
+	}),
+	path: '/baraka-socket/'
+})
+
+io.on("connection", (socket) => {
+	socket.emit('woohoo', { message: "You are connected!" })
+})
+
+
+module.exports = { app: app, io: io }
