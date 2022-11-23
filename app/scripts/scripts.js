@@ -67,4 +67,4 @@ const initializeMap = (gameId) => {
 }
 
 
-module.exports = initializeMap, randomRange
+module.exports = initializeMap, randomRange, dice
