@@ -31,6 +31,17 @@ const commandSchema = new mongoose.Schema(
 	}
 )
 
+// for moving marching units from one territory into another
+commandSchema.methods.unitsMarchIn = function unitsMarchIn() {
+	for (i=0; i < soldiers; i++) {
+		let index = this.originTerritory.units.map(unit => {return unit.type}).indexOf('soldier')
+		this.newTerritory.units.push(this.originTerritory.units.splice(index, 1)[0])
+	}
+	for (i=0; i < priests; i++) {
+		let index = this.originTerritory.units.map(unit => {return unit.type}).indexOf('priest')
+		this.newTerritory.units.push(this.originTerritory.units.splice(index, 1)[0])
+	}
+}
 
 // potential combat detection, run in 'advance' command function
 commandSchema.methods.detectCombat = function detectCombat() {
@@ -40,6 +51,8 @@ commandSchema.methods.detectCombat = function detectCombat() {
 		!this.newTerritory.units.map(unit => { return unit.type }).includes('priest'))) {
 
 		// move in units
+		// don't know if I have to use THIS here
+		this.unitsMarchIn()
 		this.newTerritory.controlledBy = this.originTerritory.controlledBy
 	}
 	else {
@@ -88,7 +101,10 @@ commandSchema.methods.combat = function combat(newTerrFormation, originTerrForma
 	// result
 	if (attackStrength > defenseStrength) {
 		// destroy all defenders
+
 		// move in units
+		// don't know if I have to use THIS here
+		this.unitsMarchIn()
 		this.newTerritory.controlledBy = this.originTerritory.controlledBy
 	} else {
 		// destroy all attackers
