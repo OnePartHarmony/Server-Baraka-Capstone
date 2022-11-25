@@ -46,7 +46,7 @@ const biomes = ['field', 'farmland', 'mountain', 'water']
 
 const unitStats = (type) => {
     return {
-        upkeepCost: 2,
+        upkeepCost: type === 'soldier'? 2 : 1,
         strength: type === 'soldier'? 2 : 1
     }
 }
