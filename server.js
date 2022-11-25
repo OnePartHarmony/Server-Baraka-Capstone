@@ -13,6 +13,9 @@ const errorHandler = require('./lib/error_handler')
 const replaceToken = require('./lib/replace_token')
 const requestLogger = require('./lib/request_logger')
 
+//import socket functions
+const sF = require('./config/socketFunctions')
+
 // require database configuration logic
 // `db` will be the actual Mongo URI as a string
 const db = require('./config/db')
@@ -93,6 +96,8 @@ const io = require('socket.io')(httpServer, {
 
 io.on("connection", (socket) => {
 	socket.emit('woohoo', { message: "You are connected!" })
+
+	sF.socketFunctions(io,socket)
 })
 
 
