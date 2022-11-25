@@ -127,11 +127,11 @@ commandSchema.methods.executeCommand = function executeCommand() {
 
 // for moving marching units from one territory into another
 commandSchema.methods.unitsMarchIn = function unitsMarchIn() {
-	for (i = 0; i < soldiers; i++) {
+	for (let i = 0; i < soldiers; i++) {
 		let index = this.originTerritory.units.map(unit => { return unit.type }).indexOf('soldier')
 		this.newTerritory.units.push(this.originTerritory.units.splice(index, 1)[0])
 	}
-	for (i = 0; i < priests; i++) {
+	for (let i = 0; i < priests; i++) {
 		let index = this.originTerritory.units.map(unit => { return unit.type }).indexOf('priest')
 		this.newTerritory.units.push(this.originTerritory.units.splice(index, 1)[0])
 	}
@@ -207,11 +207,11 @@ commandSchema.methods.combat = function combat(originTerrFormation, newTerrForma
 		this.newTerritory.controlledBy = this.originTerritory.controlledBy
 	} else {
 		// destroy all attackers
-		for (i = 0; i < soldiers; i++) {
+		for (let i = 0; i < soldiers; i++) {
 			let index = this.originTerritory.units.map(unit => { return unit.type }).indexOf('soldier')
 			this.originTerritory.units.splice(index, 1)
 		}
-		for (i = 0; i < priests; i++) {
+		for (let i = 0; i < priests; i++) {
 			let index = this.originTerritory.units.map(unit => { return unit.type }).indexOf('priest')
 			this.originTerritory.units.splice(index, 1)
 		}
