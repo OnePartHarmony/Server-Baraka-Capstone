@@ -95,8 +95,6 @@ const io = require('socket.io')(httpServer, {
 })
 
 io.on("connection", (socket) => {
-	socket.emit('woohoo', { message: "You are connected!" })
-
 	sF.socketFunctions(io,socket)
 })
 
