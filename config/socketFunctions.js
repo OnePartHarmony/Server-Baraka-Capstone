@@ -8,11 +8,10 @@ exports.socketFunctions = (thisIo, thisSocket) => {
 
     socket.on('createNewGame', createNewGame)
     socket.on('joinGame', joinGame)
-
 }
 
 //When new game is clicked and 'createNewGame' event is sent from client
-function createNewGame(callback) {
+function createNewGame(playerCount, callback) {
     // Create a unique Socket.IO Room
     const roomId = Math.floor( Math.random() * 100000 )
 
