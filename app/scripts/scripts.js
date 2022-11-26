@@ -54,7 +54,7 @@ const initializeMap = (gameId) => {
     return arr    
 }
 
-const 
+// const 
 
 
 module.exports = initializeMap, randomRange
