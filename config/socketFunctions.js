@@ -30,14 +30,13 @@ async function createNewGame(user, playerCount, callback) {
     //create unique and random room id
     const roomId = await generateRoomId()    
     // host joins the game room 
-    this.join(roomId)
-    
+    this.join(roomId)    
     
     Promise.all([
         //room id is added to user document
         joinRoom(user, roomId, addToCallback),
         //create game and player document linked to game
-        // createGame(user, roomId, playerCount, addToCallback)
+        createGame(user, roomId, playerCount, addToCallback)
     ])
     .then(() => {
         // callback returns the Room ID and user to the client
@@ -49,22 +48,18 @@ async function createNewGame(user, playerCount, callback) {
     
 }
 
-
-
   //When join game is clicked and 'joinGame' event is sent from client with room id
 function joinGame(roomId, user, callback) {
     
     //NEED TO check if room id is valid
 
-    this.join(roomId)
-    
-    
+        
     io.to(roomId).emit('status', {message: `${user.username} has joined the game`})
 
     //NEED TO check if user is player, if not and more players can join, create player document linked to game
     //send info to player
     this.emit('status', {message: 'you are --color/season--'})
-
+    this.join(roomId)
 
     //NEED TO check if all players are in game
     //if all players are in and game hasn't started, start game
@@ -75,6 +70,8 @@ function joinGame(roomId, user, callback) {
     joinRoom(user, roomId, callback)
 }
 
+
+
 function reJoinGame(roomId, callback) {
     
     //NEED TO check if room id is valid
@@ -83,7 +80,7 @@ function reJoinGame(roomId, callback) {
 
     //NEED TO find player document linked to game
     //send info to player
-    this.emit('status', {message: 'welcome back'})
+    // this.emit('status', {message: 'welcome back'})
 
-    callback({message: 'you reJoined the room!'})
+    callback({message: 'you re-joined the room!'})
 }
