@@ -1,5 +1,6 @@
 const { ObjectId } = require('mongodb')
 const mongoose = require('mongoose')
+const { orderOfSeasons } = require('../constants')
 
 const gameSchema = new mongoose.Schema(
 	{
@@ -7,6 +8,12 @@ const gameSchema = new mongoose.Schema(
 			type: String,
 			required: true,
 		},
+        numberOfPlayers: {
+            type: Number,
+            required: true,
+            // include 1 in this enum for quick testing of auto-initialize
+            enum: [2, 3, 4]
+        },
 		territories: [{ type: ObjectId, ref: 'Territory' }],
 		players: [{ type: ObjectId, ref: 'User' }],
         currentPhase: {
@@ -17,6 +24,12 @@ const gameSchema = new mongoose.Schema(
             type: String,
             enum: ['spring', 'summer', 'autumn', 'winter'],
         },
+        allSeasons: {
+            type: Array,
+            default: [],
+            required: true
+        },
+        placementOrder: [],
         host: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: 'User',
@@ -27,5 +40,29 @@ const gameSchema = new mongoose.Schema(
 		timestamps: true,
 	}
 )
+
+
+// this method orders the seasons in game correctly
+// and then sets the initial unit placement order
+// that order is as follows: in order of seasons, each player places one unit, and then each player places an additional unit in reverse starting from the last player
+gameSchema.methods.orderSeasons = function orderSeasons() {
+    const arr = []
+    orderOfSeasons.forEach(season => {
+        if (this.allSeasons.includes(season)) {
+            arr.push(season)
+        }
+    })
+    this.allSeasons = arr
+    this.placementOrder = this.allSeasons.concat(arr.reverse())
+}
+
+// this method just sets the next season based on available seasons
+gameSchema.methods.nextSeason = function nextSeason() {
+    let index = this.allSeasons.indexOf(this.currentSeason) += 1
+    if (index === this.allSeasons.length) {
+        index = 0
+    }
+    return this.currentSeason = this.allSeasons[index]
+}
 
 module.exports = mongoose.model('Game', gameSchema)
