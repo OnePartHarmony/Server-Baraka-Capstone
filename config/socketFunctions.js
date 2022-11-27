@@ -25,6 +25,6 @@ function createNewGame(playerCount, callback) {
 //When join game is clicked and 'joinGame' event is sent from client with room id
 function joinGame(roomId, callback) {
     this.join(roomId)
-    io.to(roomId).emit('woohoo', {message: `a new player has joined the game`})
+    io.to(roomId).emit('status', {message: `a new player has joined the game`})
     callback({message: 'you joined the room!'})    
 }
