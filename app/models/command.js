@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const dice = require('../scripts')
+const dice = require('../scripts/scripts')
 const Unit = require('./unit')
 
 const commandSchema = new mongoose.Schema(

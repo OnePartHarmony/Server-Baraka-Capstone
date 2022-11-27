@@ -17,6 +17,11 @@ const gameSchema = new mongoose.Schema(
             type: String,
             enum: ['spring', 'summer', 'autumn', 'winter'],
         },
+        allSeasons: {
+            type: Array,
+            default: [],
+            required: true
+        },
         host: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: 'User',
