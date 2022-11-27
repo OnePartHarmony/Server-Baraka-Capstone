@@ -46,6 +46,10 @@ const initializeGameBoard = (gameId) => {
     const addTerritories = initializeMap(gameId)
     Game.findById(gameId)
         .then(game => {
+            game.orderSeasons()
+            game.currentSeason = game.allSeasons[0]
+            game.save()
+            
             if (game.territories.length < addTerritories.length) {
                     addTerritories.forEach(territory => {
                         Territory.create(territory)
@@ -60,9 +64,14 @@ const initializeGameBoard = (gameId) => {
                                     })
                             })
                     })
-                return
+            
             }
+        return game  
         })
+        // .then(game => {
+        //     game.setPlacementOrder()
+        //     game.save()
+        // })
 } 
 
 
