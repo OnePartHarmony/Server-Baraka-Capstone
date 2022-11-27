@@ -1,4 +1,5 @@
-const User = require('../app/models/user')
+// const User = require('../app/models/user')
+const Game = require('../app/models/game')
 const {joinRoom} = require('../app/routes/user_function_routes')
 
 
@@ -22,7 +23,7 @@ async function createNewGame(user, playerCount, callback) {
     //create random room id and check if any user is currently using that room id
     const createUniqueId = () => {
         roomId = (Math.floor( Math.random() * 100000 )).toString()
-        User.find({'gameRoomId': roomId})
+        Game.find({'roomId': roomId})
             .then(record => {
                 console.log("record", record)
                 if (!record) {
