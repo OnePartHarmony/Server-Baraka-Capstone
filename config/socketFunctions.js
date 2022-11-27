@@ -17,7 +17,7 @@ exports.socketFunctions = (thisIo, thisSocket) => {
 }
 
   //When new game is clicked and 'createNewGame' event is sent from client
-async function createNewGame(user, playerCount, callback) {
+function createNewGame(user, playerCount, callback) {
     // Create a unique Socket.IO Room (room id must be string)    
     let roomId
     //create random room id and check if any user is currently using that room id
@@ -42,23 +42,20 @@ async function createNewGame(user, playerCount, callback) {
 
     // host joins the game room 
     this.join(roomId)
-    //room id is added to user document    
-    const updatedUser = await joinRoom(user, roomId)
-    
-    // return the Room ID to the client
-    callback({ roomId: roomId, user: updatedUser })
+    //room id is added to user document
+    // callback returns the Room ID and user to the client
+    joinRoom(user, roomId, callback)
 }
 
 
 
   //When join game is clicked and 'joinGame' event is sent from client with room id
-async function joinGame(roomId, user, callback) {
+function joinGame(roomId, user, callback) {
     
     //NEED TO check if room id is valid
 
     this.join(roomId)
-    //room id is added to user document
-    const updatedUser = await joinRoom(user, roomId)
+    
     
     io.to(roomId).emit('status', {message: `${user.username} has joined the game`})
 
@@ -72,7 +69,8 @@ async function joinGame(roomId, user, callback) {
     // const gameData = </find game/>
     // io.to(roomId).emit('startNewGame', gameData)
 
-    callback({message: 'you joined the room!', user: updatedUser})
+    //room id is added to user document
+    joinRoom(user, roomId, callback)
 }
 
 function reJoinGame(roomId, user, callback) {
