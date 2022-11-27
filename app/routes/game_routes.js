@@ -41,6 +41,33 @@ const game = require('../models/game')
 // temp storage for various scripts
 // re-factor later
 
+// Script for initializing game
+const initializeGameBoard = (gameId) => {
+    const addTerritories = initializeMap(gameId)
+    Game.findById(gameId)
+        .then(game => {
+            if (game.territories.length < addTerritories.length) {
+                    addTerritories.forEach(territory => {
+                        Territory.create(territory)
+                            .then(territory => {
+                                let terrId = territory._id
+                                // we have to find the game each time to prevent parallel saves unfortunatly
+                                // may revisit by building an array than adding the whole array at once...
+                                Game.findById(gameId)
+                                    .then(game => {
+                                        game.territories.push(terrId)
+                                        return game.save()
+                                    })
+                            })
+                    })
+                return
+            }
+        })
+} 
+
+
+
+
 // Script for adding a player to a game and randomly assigning a season
 const addPlayer = (roomId, userId) => {
     let availableSeasons = orderOfSeasons.slice()
@@ -60,13 +87,19 @@ const addPlayer = (roomId, userId) => {
         .then(game => {
             // then we create the player...
             Player.create({user: userId, season: availableSeasons[randIndex]})
-                .then((player) => {
+                .then(player => {
                         // and modify the game document to add the player to the game and the season to the list of seasons in game
                         game.players.push(player._id)
                         game.allSeasons.push(availableSeasons[randIndex])
-                        game.save()
+                        return game.save()
                         })
+                
+                .then(game => {
+                    if (game.players.length === game.numberOfPlayers) {
+                        initializeGameBoard(game._id)
+                    }
                 })
+            })
 }
 
 
