@@ -15,13 +15,13 @@ function createNewGame(playerCount, callback) {
     // Create a unique Socket.IO Room
     const roomId = Math.floor( Math.random() * 100000 )
 
-    // host joins the game room (room id must be string)
-    this.join(roomId.toString())
-
-
+    //NEED TO check if game id matches game
     //NEED TO create game and player document linked to game
     //send info to player
     this.emit('status', {message: 'you are --color/season--'})
+
+    // host joins the game room (room id must be string)
+    this.join(roomId.toString())    
 
     // return the Room ID to the client
     callback({ roomId: roomId })
@@ -38,6 +38,14 @@ function joinGame(roomId, user, callback) {
     //NEED TO create player document linked to game
     //send info to player
     this.emit('status', {message: 'you are --color/season--'})
+
+
+    //NEED TO check if all players are in game
+    //if all players are in, start game
+    // const gameData = </find game/>
+    // io.to(roomId).emit('startNewGame', gameData)
+
+
 
     callback({message: 'you joined the room!'})
 }
