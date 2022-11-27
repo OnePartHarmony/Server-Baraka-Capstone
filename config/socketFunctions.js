@@ -16,7 +16,7 @@ exports.socketFunctions = (thisIo, thisSocket) => {
 }
 
   //When new game is clicked and 'createNewGame' event is sent from client
-function createNewGame(user, playerCount, callback) {
+async function createNewGame(user, playerCount, callback) {
     // Create a unique Socket.IO Room (room id must be string)    
     let roomId
     //create random room id and check if any user is currently using that room id
@@ -35,33 +35,31 @@ function createNewGame(user, playerCount, callback) {
     }
     createUniqueId()
 
-
     //NEED TO create game and player document linked to game
     //send info to player
     this.emit('status', {message: 'you are --color/season--'})
 
     // host joins the game room 
     this.join(roomId)
-    //room id is added to user document
-    joinRoom(user, roomId)
-
-
+    //room id is added to user document    
+    const updatedUser = await joinRoom(user, roomId)
+    
     // return the Room ID to the client
-    callback({ roomId: roomId })
+    callback({ roomId: roomId, user: updatedUser })
 }
 
 
 
   //When join game is clicked and 'joinGame' event is sent from client with room id
-function joinGame(roomId, user, callback) {
+async function joinGame(roomId, user, callback) {
     
     //NEED TO check if room id is valid
 
     this.join(roomId)
     //room id is added to user document
-    joinRoom(user, roomId)
-
-    io.to(roomId).emit('status', {message: `a new player has joined the game`})
+    const updatedUser = await joinRoom(user, roomId)
+    
+    io.to(roomId).emit('status', {message: `${user.username} has joined the game`})
 
     //NEED TO check if user is player, if not and more players can join, create player document linked to game
     //send info to player
@@ -73,7 +71,7 @@ function joinGame(roomId, user, callback) {
     // const gameData = </find game/>
     // io.to(roomId).emit('startNewGame', gameData)
 
-    callback({message: 'you joined the room!'})
+    callback({message: 'you joined the room!', user: updatedUser})
 }
 
 function reJoinGame(roomId, user, callback) {
