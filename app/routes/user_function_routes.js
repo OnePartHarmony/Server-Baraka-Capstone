@@ -10,7 +10,7 @@ async function joinRoom (currentUser, roomId, addToCallback) {
 		.then(user => {
 			addToCallback( {roomId: roomId, user: user.toObject() } )
 		})
-		.catch(err => console.log(err))
+		.catch(err => {addToCallback({error: err})})
 }
 
 module.exports = { joinRoom }

@@ -14,15 +14,49 @@ const handle404 = customErrors.handle404
 
 const initializeMap = require('../scripts/scripts')
 const adjacents = require('../constants')
+const game = require('../models/game')
 
 
+
+// Script for initializing game
+const initializeGameBoard = (gameId) => {
+    const addTerritories = initializeMap(gameId)
+    Game.findById(gameId)
+        .then(game => {
+            game.orderSeasons()
+            game.currentSeason = game.allSeasons[0]
+            game.save()
+            
+            if (game.territories.length < addTerritories.length) {
+                    addTerritories.forEach(territory => {
+                        Territory.create(territory)
+                            .then(territory => {
+                                let terrId = territory._id
+                                // we have to find the game each time to prevent parallel saves unfortunatly
+                                // may revisit by building an array than adding the whole array at once...
+                                Game.findById(gameId)
+                                    .then(game => {
+                                        game.territories.push(terrId)
+                                        return game.save()
+                                    })
+                            })
+                    })
+            
+            }
+        return game  
+        })
+        // .then(game => {
+        //     game.setPlacementOrder()
+        //     game.save()
+        // })
+} 
 
 // Script for adding a player to a game and randomly assigning a season
-const addPlayer = (roomId, userId) => {
+async function addPlayer(roomId, userId) {
     let availableSeasons = orderOfSeasons.slice()
     let randIndex
     // First, we find the game
-    Game.findOne({ roomId: roomId })
+    await Game.findOne({ roomId: roomId })
         .then(game => {
             orderOfSeasons.forEach(season => {
                 if (game.allSeasons.includes(season)) {
@@ -51,36 +85,40 @@ const addPlayer = (roomId, userId) => {
             })
 }
 
+// This script is for generating a random room code for socket.io and ensuring it isn't currently in use
+const generateRoomId = () => {
+    let randId = Math.floor(Math.random()*100000)
+    if (randId < 10000) {
+        randId += 10000
+    }
+    if (Game.find({ roomId: randId}).length > 0) {
+        generateRoomId
+    } else{
+        return randId
+    }
+}
 
-// CREATE
-// POST /games
-// router.post('/games', requireToken, (req, res, next) => {
-// 	// set owner of new game to be current user
-//     // req.body.game.players = [req.user.id]
-// 	req.body.game.roomId = generateRoomId()
-//     req.body.game.host = req.user.id
-//     console.log(req.body.game)
-// 	Game.create(req.body.game)
-//         .then((game) => {
-//             addPlayer(game.roomId, game.host)
-//             return game
-//         })
-// 		// respond to succesful `create` with status 201 and JSON of new "game"
-// 		.then((game) => {
-            
-//             console.log(game)
-// 			res.status(201).json({ game: game.toObject() })
-// 		})
-// 		// if an error occurs, pass it off to our error handler
-// 		// the error handler needs the error message and the `res` object so that it
-// 		// can send an error message back to the client
-// 		.catch(next)
-// })
-
-
-const createGame = () => {
-
+// CREATE GAME
+async function createGame(user, roomId, playerCount, addToCallback) {
+    let gameData = {
+        // players: [user._id],
+        roomId: roomId,
+        host: user._id,
+        numberOfPlayers: playerCount
+    }
+    await Game.create(gameData)
+        .then((game) => {
+            addPlayer(roomId, user._id)
+            return game
+        })
+        // respond to succesful `create` with status 201 and JSON of new "game"
+        .then((game) => {            
+            console.log(game)
+            addToCallback({ game: game.toObject() })
+        })
+        // if an error occurs, send it in the callback
+        .catch(err => {addToCallback({error: err})})
 }
 
 
-module.exports = {createGame}
+module.exports = {createGame, generateRoomId}
