@@ -1,6 +1,6 @@
 // const User = require('../app/models/user')
 const Game = require('../app/models/game')
-const { createGame } = require('../app/routes/game_function_routes')
+const { createGame, generateRoomId } = require('../app/routes/game_function_routes')
 const {joinRoom} = require('../app/routes/user_function_routes')
 
 
@@ -26,42 +26,23 @@ async function createNewGame(user, playerCount, callback) {
     const addToCallback = (object) => {
         callbackObject = Object.assign(callbackObject, object)
     }
-       
-    let roomId
-    //create random room id and check if any user is currently using that room id
-    const createUniqueId = () => {
-        roomId = (Math.floor( Math.random() * 100000 )).toString()        
-        Game.find({'roomId': roomId})
-            .then(result => {
-                if (!result.length) {
-                    console.log(roomId)
-                    return roomId
-                } else {
-                    return createUniqueId()
-                }
-            })
-            .catch(err => console.log(err))
-    }
-    await Promise.all([createUniqueId()])
-                .then(() => {
-                    // host joins the game room 
-                    this.join(roomId)
-                    //room id is added to user document
-                    Promise.all([
-                        joinRoom(user, roomId, addToCallback)
-                        //NEED TO create game and player document linked to game
-                            // createGame(user, roomId, playerCount, callback)
-                    ])
-                    .then(() => {
-                        // callback returns the Room ID and user to the client
-                        callback(callbackObject)
-                    })
-                })
 
+    //create unique and random room id
+    const roomId = await generateRoomId()    
+    // host joins the game room 
+    this.join(roomId)
     
-
-
-   
+    
+    Promise.all([
+        //room id is added to user document
+        joinRoom(user, roomId, addToCallback),
+        //create game and player document linked to game
+        // createGame(user, roomId, playerCount, addToCallback)
+    ])
+    .then(() => {
+        // callback returns the Room ID and user to the client
+        callback(callbackObject)
+    })
 
     //send info to player
     // this.emit('status', {message: 'you are --color/season--'})    

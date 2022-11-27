@@ -14,6 +14,7 @@ const handle404 = customErrors.handle404
 
 const initializeMap = require('../scripts/scripts')
 const adjacents = require('../constants')
+const game = require('../models/game')
 
 
 
@@ -52,6 +53,19 @@ const addPlayer = (roomId, userId) => {
 }
 
 
+// This script is for generating a random room code for socket.io and ensuring it isn't currently in use
+const generateRoomId = () => {
+    let randId = Math.floor(Math.random()*100000)
+    if (randId < 10000) {
+        randId += 10000
+    }
+    if (Game.find({ roomId: randId}).length > 0) {
+        generateRoomId
+    } else{
+        return randId
+    }
+}
+
 // CREATE
 // POST /games
 // router.post('/games', requireToken, (req, res, next) => {
@@ -78,9 +92,11 @@ const addPlayer = (roomId, userId) => {
 // })
 
 
-const createGame = () => {
-
+const createGame = (user, roomId, playerCount, addToCallback) => {
+    let game ={
+        players: [user._id]
+    }
 }
 
 
-module.exports = {createGame}
+module.exports = {createGame, generateRoomId}
