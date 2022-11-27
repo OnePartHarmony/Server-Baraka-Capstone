@@ -16,7 +16,11 @@ const userSchema = new mongoose.Schema(
             required: true,
             unique: true,
         },
-		token: String,
+		gameRoomId: {
+			type: String, //string representation of a number
+			required: false
+		},
+		token: String
 	},
 	{
 		timestamps: true,
