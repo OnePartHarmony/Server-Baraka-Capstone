@@ -18,13 +18,26 @@ function createNewGame(playerCount, callback) {
     // host joins the game room (room id must be string)
     this.join(roomId.toString())
 
-    // return the Room ID and the socket ID (not currently used) to the client
-    callback({ roomId: roomId, mySocketId: this.id })
+
+    //NEED TO create game and player document linked to game
+    //send info to player
+    this.emit('status', {message: 'you are --color/season--'})
+
+    // return the Room ID to the client
+    callback({ roomId: roomId })
 }
 
 //When join game is clicked and 'joinGame' event is sent from client with room id
-function joinGame(roomId, callback) {
+function joinGame(roomId, user, callback) {
+
+    //NEED TO check if room id is valid
+
     this.join(roomId)
     io.to(roomId).emit('status', {message: `a new player has joined the game`})
-    callback({message: 'you joined the room!'})    
+
+    //NEED TO create player document linked to game
+    //send info to player
+    this.emit('status', {message: 'you are --color/season--'})
+
+    callback({message: 'you joined the room!'})
 }
