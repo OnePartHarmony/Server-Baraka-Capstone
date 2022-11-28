@@ -13,9 +13,70 @@ const { unitStats, orderOfSeasons } = require('../constants')
 const handle404 = customErrors.handle404
 
 const initializeMap = require('../scripts/scripts')
-const adjacents = require('../constants')
-const game = require('../models/game')
+// const adjacents = require('../constants')
+// const game = require('../models/game')
 
+
+// script for getting the current populated game data and returning it as an object
+async function getPopulatedGame(gameId) {
+    console.log(gameId)
+
+    // Game.findOne({ roomId: gameId })
+    await Game.findById(gameId)
+        .populate('players')
+        .populate({
+            path : 'territories',
+                populate : {
+                    path : 'units',
+                    populate : {
+                        path : 'commander',
+                            populate : {
+                                path: 'user', select : 'username'
+                            }
+                    },
+                },
+        })
+        .populate({
+            path: 'territories',    
+                populate : {
+                    path : 'controlledBy',
+                            populate : {
+                                path: 'user', select : 'username'
+                            }
+                }
+        })
+
+		.then(handle404)
+		.then((game) => {
+            
+            console.log(game)
+            return game
+        })
+		.catch(() => console.error())
+}
+
+
+
+// Script for adding units to territories during initial game setup phase
+const initialPlacement = async (playerId, territoryId) => {
+    const territory = await Territory.findById(territoryId)
+    const player = await Player.findById(playerId)
+    const game = await Game.findById(player.gameId)
+    if (game.placementOrder[0] === player.season && (!territory.controlledBy || territory.controlledBy === playerId)) {
+        territory.controlledBy = playerId
+        territory.priest += 1
+        await territory.save()
+        const newPlacementOrder = game.placementOrder.slice()
+        newPlacementOrder.splice(0,1)
+        game.placementOrder = newPlacementOrder
+        await game.save()
+        const gameToSend = await getPopulatedGame(game._id)
+        return gameToSend
+    } else {
+        console.log('Illegal Move')
+    }
+
+}
 
 
 // Script for initializing game
@@ -124,4 +185,4 @@ async function createGame(user, roomId, playerCount, addToCallback, socket) {
 }
 
 
-module.exports = {createGame, generateRoomId}
+module.exports = { createGame, generateRoomId, initialPlacement, getPopulatedGame }

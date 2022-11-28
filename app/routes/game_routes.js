@@ -41,7 +41,7 @@ const game = require('../models/game')
 // temp storage for various scripts
 // re-factor later
 
-// // Script for initializing game
+// Script for initializing game
 // const initializeGameBoard = (gameId) => {
 //     const addTerritories = initializeMap(gameId)
 //     Game.findById(gameId)
@@ -77,7 +77,7 @@ const game = require('../models/game')
 
 
 
-// // Script for adding a player to a game and randomly assigning a season
+// Script for adding a player to a game and randomly assigning a season
 // const addPlayer = (roomId, userId) => {
 //     let availableSeasons = orderOfSeasons.slice()
 //     let randIndex
@@ -113,7 +113,7 @@ const game = require('../models/game')
 
 
 
-// // This script is for generating a random room code for socket.io and ensuring it isn't currently in use
+// This script is for generating a random room code for socket.io and ensuring it isn't currently in use
 // const generateRoomId = () => {
 //     let randId = Math.floor(Math.random()*100000)
 //     if (randId < 10000) {
@@ -129,7 +129,6 @@ const game = require('../models/game')
 ////////////////////////////////////////
 // END Scripts for Routes
 ////////////////////////////////////////
-
 
 
 // INDEX
@@ -182,66 +181,66 @@ router.get('/games/:id', requireToken, (req, res, next) => {
 		.catch(next)
 })
 
-// // CREATE
-// // POST /games
-// router.post('/games', requireToken, (req, res, next) => {
-// 	// set owner of new game to be current user
-//     // req.body.game.players = [req.user.id]
-// 	req.body.game.roomId = generateRoomId()
-//     req.body.game.host = req.user.id
-//     console.log(req.body.game)
-// 	Game.create(req.body.game)
-//         .then((game) => {
-//             addPlayer(game.roomId, game.host)
-//             return game
-//         })
-// 		// respond to succesful `create` with status 201 and JSON of new "game"
-// 		.then((game) => {
+// CREATE
+// POST /games
+router.post('/games', requireToken, (req, res, next) => {
+	// set owner of new game to be current user
+    // req.body.game.players = [req.user.id]
+	req.body.game.roomId = generateRoomId()
+    req.body.game.host = req.user.id
+    console.log(req.body.game)
+	Game.create(req.body.game)
+        .then((game) => {
+            addPlayer(game.roomId, game.host)
+            return game
+        })
+		// respond to succesful `create` with status 201 and JSON of new "game"
+		.then((game) => {
             
-//             console.log(game)
-// 			res.status(201).json({ game: game.toObject() })
-// 		})
-// 		// if an error occurs, pass it off to our error handler
-// 		// the error handler needs the error message and the `res` object so that it
-// 		// can send an error message back to the client
-// 		.catch(next)
-// })
+            console.log(game)
+			res.status(201).json({ game: game.toObject() })
+		})
+		// if an error occurs, pass it off to our error handler
+		// the error handler needs the error message and the `res` object so that it
+		// can send an error message back to the client
+		.catch(next)
+})
 
 
 //Intialize Game Board
 //PATCH /games/<id>/initialize
-router.patch('/games/:id/initialize', (req, res, next) => {
-    const gameId = req.params.id
-    // const game = Game.findById(gameId)
-    //     .then(game => console.log(game))
-    // // console.log('i am game', game)
-    // let numOfTerrInGame
-    const addTerritories = initializeMap(gameId)
-    Game.findById(gameId)
-        .then(game => {
-            console.log(game.territories.length)
-            return game.territories.length
-        })
-        .then(num => {
-            console.log(num)
-            if (num < addTerritories.length) {
-                    addTerritories.forEach(territory => {
-                        Territory.create(territory)
-                            .then(territory => {
-                                let terrId = territory._id
-                                Game.findById(gameId)
-                                    .then(game => {
-                                        game.territories.push(terrId)
-                                        return game.save()
-                                    })
-                            })
-                    })
-                return res.sendStatus(201)
-            } else {
-                return res.sendStatus(204)
-            }
-    })
-})
+// router.patch('/games/:id/initialize', (req, res, next) => {
+//     const gameId = req.params.id
+//     // const game = Game.findById(gameId)
+//     //     .then(game => console.log(game))
+//     // // console.log('i am game', game)
+//     // let numOfTerrInGame
+//     const addTerritories = initializeMap(gameId)
+//     Game.findById(gameId)
+//         .then(game => {
+//             console.log(game.territories.length)
+//             return game.territories.length
+//         })
+//         .then(num => {
+//             console.log(num)
+//             if (num < addTerritories.length) {
+//                     addTerritories.forEach(territory => {
+//                         Territory.create(territory)
+//                             .then(territory => {
+//                                 let terrId = territory._id
+//                                 Game.findById(gameId)
+//                                     .then(game => {
+//                                         game.territories.push(terrId)
+//                                         return game.save()
+//                                     })
+//                             })
+//                     })
+//                 return res.sendStatus(201)
+//             } else {
+//                 return res.sendStatus(204)
+//             }
+//     })
+// })
 
 // POST
 // Add Unit to map
