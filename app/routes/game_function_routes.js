@@ -52,7 +52,7 @@ const initializeGameBoard = (gameId) => {
 } 
 
 // Script for adding a player to a game and randomly assigning a season
-async function addPlayer(roomId, userId) {
+async function addPlayer(roomId, userId, addToCallback, socket) {
     let availableSeasons = orderOfSeasons.slice()
     let randIndex
     // First, we find the game
@@ -71,15 +71,19 @@ async function addPlayer(roomId, userId) {
             // then we create the player...
             Player.create({user: userId, season: availableSeasons[randIndex]})
                 .then(player => {
-                        // and modify the game document to add the player to the game and the season to the list of seasons in game
+                        // and modify the game document to add the player to the game and the season to the list of seasons in game                        
                         game.players.push(player._id)
                         game.allSeasons.push(availableSeasons[randIndex])
+                        socket.emit('status', {message: `Your season is ${availableSeasons[randIndex]}`})
                         return game.save()
                         })
                 
                 .then(game => {
                     if (game.players.length === game.numberOfPlayers) {
                         initializeGameBoard(game._id)
+                    } else {
+                        console.log("here", game.toObject())
+                        // addToCallback({ game: game.toObject() })
                     }
                 })
             })
@@ -99,7 +103,7 @@ const generateRoomId = () => {
 }
 
 // CREATE GAME
-async function createGame(user, roomId, playerCount, addToCallback) {
+async function createGame(user, roomId, playerCount, addToCallback, socket) {
     let gameData = {
         // players: [user._id],
         roomId: roomId,
@@ -108,12 +112,11 @@ async function createGame(user, roomId, playerCount, addToCallback) {
     }
     await Game.create(gameData)
         .then((game) => {
-            addPlayer(roomId, user._id)
+            addPlayer(roomId, user._id, addToCallback, socket)
             return game
         })
         // respond to succesful `create` with status 201 and JSON of new "game"
-        .then((game) => {            
-            console.log(game)
+        .then((game) => {
             addToCallback({ game: game.toObject() })
         })
         // if an error occurs, send it in the callback

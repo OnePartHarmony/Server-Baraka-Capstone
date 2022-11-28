@@ -7,6 +7,7 @@ const gameSchema = new mongoose.Schema(
 		roomId: {
 			type: String,
 			required: true,
+            unique: true
 		},
         numberOfPlayers: {
             type: Number,
