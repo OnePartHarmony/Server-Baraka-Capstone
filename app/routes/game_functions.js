@@ -122,14 +122,34 @@ const generateRoomId = () => {
 
 
 
+
+
 ////check if game exists with roomId
+async function checkGameExistence(roomId, addToCallback) {
+    const exists = await Game.findOne({ roomId: roomId })
+        .then(game => {return game})
+        .finally(game => {
+            if (game){
+                return game._id
+            } else {
+                return false
+            }
+        })
+        .catch(err => {addToCallback({error: err})})
+    return exists
+}
+
+//check if user is a player in Game
+async function checkIfPlayer(gameId, user, addToCallback) {
+    const player = await Game.findById(gameId)
+        .then(game => {return game})
+        .finally(game => {
+            return game.players.includes(user._id)
+        })
+        .catch(err => {addToCallback({error: err})})
+    return player
+}
 
 
 
-
-
-
-
-
-
-module.exports = {generateRoomId, addPlayer}
+module.exports = {generateRoomId, addPlayer, checkGameExistence, checkIfPlayer}
