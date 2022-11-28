@@ -5,6 +5,7 @@ const passport = require('passport')
 
 // pull in Mongoose model for games
 const Game = require('../models/game')
+const User = require('../models/user')
 const Territory = require('../models/territory')
 const Unit = require('../models/unit')
 const Player = require('../models/player')
@@ -33,7 +34,7 @@ const router = express.Router()
 
 const initializeMap = require('../scripts/scripts')
 const adjacents = require('../constants')
-const game = require('../models/game')
+const {generateRoomId, addPlayer} = require('./game_functions')
 
 ///////////////////////////////////////
 // Scripts for Routes
@@ -182,30 +183,33 @@ router.get('/games/:id', requireToken, (req, res, next) => {
 		.catch(next)
 })
 
-// // CREATE
-// // POST /games
-// router.post('/games', requireToken, (req, res, next) => {
-// 	// set owner of new game to be current user
-//     // req.body.game.players = [req.user.id]
-// 	req.body.game.roomId = generateRoomId()
-//     req.body.game.host = req.user.id
-//     console.log(req.body.game)
-// 	Game.create(req.body.game)
-//         .then((game) => {
-//             addPlayer(game.roomId, game.host)
-//             return game
-//         })
-// 		// respond to succesful `create` with status 201 and JSON of new "game"
-// 		.then((game) => {
-            
-//             console.log(game)
-// 			res.status(201).json({ game: game.toObject() })
-// 		})
-// 		// if an error occurs, pass it off to our error handler
-// 		// the error handler needs the error message and the `res` object so that it
-// 		// can send an error message back to the client
-// 		.catch(next)
-// })
+// CREATE
+// POST /games
+router.post('/games', requireToken, (req, res, next) => {
+    const roomId = generateRoomId()
+	req.body.game.roomId = roomId
+    // set owner of new game to be current user
+    req.body.game.host = req.body.user._id
+	Game.create(req.body.game)
+        .then((game) => {            
+            addPlayer(game.roomId, game.host)
+            return game
+        })
+		// respond to succesful `create` with status 201 and JSON of new "game"
+		.then((game) => {
+            //add roomId to user document
+            User.findById(req.body.user._id)
+                .then(user => {                    
+                    user.gameRoomId = roomId
+                    return user.save()
+                })
+                .then(user => {
+                    res.status(201).json({ game: game.toObject(), user: user.toObject() })
+                })
+		        .catch(next)            
+		})
+		.catch(next)
+})
 
 
 //Intialize Game Board

@@ -1,6 +1,6 @@
 // const User = require('../app/models/user')
 const Game = require('../app/models/game')
-const { createGame, generateRoomId } = require('../app/routes/game_function_routes')
+const { createGame, generateRoomId } = require('../app/routes/game_functions')
 const {joinRoom} = require('../app/routes/user_function_routes')
 
 
@@ -28,9 +28,9 @@ async function createNewGame(user, playerCount, callback) {
     }
 
     //create unique and random room id
-    const roomId = await generateRoomId()    
+    const roomId = await generateRoomId()
     // host joins the game room 
-    this.join(roomId)    
+    this.join(roomId)
     
     Promise.all([
         //room id is added to user document
@@ -52,6 +52,9 @@ async function createNewGame(user, playerCount, callback) {
 function joinGame(roomId, user, callback) {
     
     //NEED TO check if room id is valid
+    //Game.findOne({roomId: roomId})
+
+
 
         
     io.to(roomId).emit('status', {message: `${user.username} has joined the game`})
