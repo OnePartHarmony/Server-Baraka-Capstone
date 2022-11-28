@@ -36,7 +36,7 @@ async function createNewGame(user, playerCount, callback) {
         //room id is added to user document
         joinRoom(user, roomId, addToCallback),
         //create game and player document linked to game
-        createGame(user, roomId, playerCount, addToCallback)
+        createGame(user, roomId, playerCount, addToCallback, this)
     ])
     .then(() => {
         // callback returns the Room ID and user to the client
