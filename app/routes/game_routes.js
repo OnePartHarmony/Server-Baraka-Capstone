@@ -128,6 +128,23 @@ const {generateRoomId, addPlayer} = require('./game_functions')
 //     }
 // }
 
+
+const buildTerritories = async (gameId) => {
+    const addTerritories = initializeMap(gameId)
+    const territoryIds = []
+    await addTerritories.forEach(territory => {
+        Territory.create(territory)
+            .then(territory => {
+                territoryIds.push(territory._id)
+            })
+        })
+    Game.findById(game.id)
+        .then(game => {
+            game.territories = territoryIds
+            game.save()
+        })
+}
+
 ////////////////////////////////////////
 // END Scripts for Routes
 ////////////////////////////////////////
@@ -200,6 +217,10 @@ router.post('/games', requireToken, (req, res, next) => {
         .then((game) => {            
             addPlayer(roomId, req.body.user._id )
             return game           
+        })
+        .then((game) => {
+            buildTerritories(game._id)
+            return game
         })
 		// respond to succesful `create` with status 201 and JSON of new "game"
 		.then((game) => {
