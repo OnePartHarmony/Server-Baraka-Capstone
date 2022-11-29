@@ -59,11 +59,14 @@ async function joinGame(roomId, user, callback) {
     if (gameId) {
         //check if user is already a player in this game
         const userIsPlayer = await checkIfPlayer(gameId, user, addToCallback)
-        console.log(userIsPlayer)
         if (userIsPlayer) {
             //add room id to user doc
             await joinRoom(user, roomId, addToCallback)
             //re-join the game
+            //leave any rooms socket was in so new room is only one
+            for (room of this.rooms){
+                this.leave(room)
+            }
             this.join(user.gameRoomId)
             addToCallback({message: 'you re-joined the room!'})
             callback(callbackObject)
@@ -75,8 +78,13 @@ async function joinGame(roomId, user, callback) {
             } else {
                 //add player to game
                 await addPlayer(roomId, user._id)
-                //add room id to user doc, join game room
+                //add room id to user doc 
                 await joinRoom(user, roomId, addToCallback)
+                //leave any rooms socket was in so new room is only one
+                for (room of this.rooms){
+                    this.leave(room)
+                }
+                //join game room
                 this.join(user.gameRoomId)
                 addToCallback({message: 'you joined the game!'})
                 callback(callbackObject)
@@ -102,6 +110,10 @@ async function reJoinGame(user, callback) {
     const gameId = await checkGameExistence(user.gameRoomId, addToCallback)
     const userIsPlayer = await checkIfPlayer(gameId, user, addToCallback)
     if (gameId && userIsPlayer) {
+        //leave any rooms socket was in so new room is only one
+        for (room of this.rooms){
+            this.leave(room)
+        }
         this.join(user.gameRoomId)
         callback({message: 'you re-joined the room!'})
     } else {
