@@ -82,8 +82,8 @@ commandSchema.methods.executeCommand = function executeCommand() {
 		case 'advance':
 			// detectCombat will move units in or resolve combat then move units in
 			if (this.detectCombat()) {
-				let originTerrFormation = GetThisFormationPROMISE()
-				let newTerrFormation = GetThisFormationPROMISE()
+				let originTerrFormation = PROMISEGetThisFormationPROMISE()
+				let newTerrFormation = PROMISEGetThisFormationPROMISE()
 
 				if (this.combat(origin, originTerrFormation, target, newTerrFormation)){
 					unitsMarchIn()
@@ -194,11 +194,16 @@ commandSchema.methods.combat = function combat(origin, originTerrFormation, targ
 	}
 
 	// formation bonus, most significant by far so perhaps should come before some other bonuses
-	if (dice.roll(originTerrFormation) > dice.roll(newTerrFormation)) {
+	let originRoll = dice.roll(originTerrFormation)
+	let targetRoll = dice.roll(newTerrFormation)
+
+	if (originRoll > targetRoll) {
 		attackStrength *= 2
 	} else {
 		defenseStrength *= 2
 	}
+
+	PROMISESendResultsToFrontEndPROMISE(originRoll, targetRoll, attackStrength, defenseStrength)
 
 	// result
 	if (attackStrength > defenseStrength) {
