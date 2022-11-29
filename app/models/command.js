@@ -53,6 +53,15 @@ commandSchema.methods.executeCommand = function executeCommand() {
 		target = Territory.findById(this.newTerritory.id)
 	}
 
+    // saves all the pulled in documents
+    const updateDocs = function updateDocs() {
+        origin.save()
+        commander.save()
+        if (target) {
+            target.save()
+        }
+    }
+
 	// for moving marching units from one territory into another
 	const unitsMarchIn = function unitsMarchIn() {
 		origin.soldiers -= soldiersMarching
@@ -81,6 +90,7 @@ commandSchema.methods.executeCommand = function executeCommand() {
 				}
 			} else {
 				unitsMarchIn()
+                updateDocs()
 			}
 			break
 		case 'excise':
@@ -91,6 +101,7 @@ commandSchema.methods.executeCommand = function executeCommand() {
 			} else {
 				commander.gold += origin.wealth
 				origin.wealth -= 1
+                updateDocs()
 				break
 			}
 		case 'muster':
@@ -109,6 +120,7 @@ commandSchema.methods.executeCommand = function executeCommand() {
 						origin.soldiers += 1
 						commander.gold -= 2
 						origin.abundance -= 1
+                        updateDocs()
 					}
 				} else if (this.musteredUnit === 'priest') {
 					// back end check if you can afford this
@@ -119,6 +131,7 @@ commandSchema.methods.executeCommand = function executeCommand() {
 						origin.priests += 1
 						commander.gold -= 5
 						origin.abundance -= 1
+                        updateDocs()
 					}
 				}
 				// assuming peasants, rather than being full units in their own right, are just numeric representations of population
@@ -133,6 +146,7 @@ commandSchema.methods.executeCommand = function executeCommand() {
 			} else {
 				origin.population += 1
 				origin.abundance += 2
+                updateDocs()
 			}
 		default:
 			break

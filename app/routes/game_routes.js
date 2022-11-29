@@ -128,6 +128,23 @@ const {generateRoomId, addPlayer} = require('./game_functions')
 //     }
 // }
 
+
+const buildTerritories = async (gameId) => {
+    const addTerritories = initializeMap(gameId)
+    const territoryIds = []
+    await addTerritories.forEach(territory => {
+        Territory.create(territory)
+            .then(territory => {
+                territoryIds.push(territory._id)
+            })
+        })
+    Game.findById(game.id)
+        .then(game => {
+            game.territories = territoryIds
+            game.save()
+        })
+}
+
 ////////////////////////////////////////
 // END Scripts for Routes
 ////////////////////////////////////////
@@ -160,18 +177,19 @@ router.get('/games/:id', requireToken, (req, res, next) => {
                     path: 'user', select : 'username'
                 }
         })
-        .populate({
-            path : 'territories',
-                populate : {
-                    path : 'units',
-                    populate : {
-                        path : 'commander',
-                            populate : {
-                                path: 'user', select : 'username'
-                            }
-                    },
-                },
-        })
+        // we are no longer using documents for units so this is un needed
+        // .populate({
+        //     path : 'territories',
+        //         populate : {
+        //             path : 'units',
+        //             populate : {
+        //                 path : 'commander',
+        //                     populate : {
+        //                         path: 'user', select : 'username'
+        //                     }
+        //             },
+        //         },
+        // })
         .populate({
             path: 'territories',    
                 populate : {
@@ -199,6 +217,10 @@ router.post('/games', requireToken, (req, res, next) => {
         .then((game) => {            
             addPlayer(roomId, req.body.user._id )
             return game           
+        })
+        .then((game) => {
+            buildTerritories(game._id)
+            return game
         })
 		// respond to succesful `create` with status 201 and JSON of new "game"
 		.then((game) => {
@@ -255,25 +277,26 @@ router.post('/games', requireToken, (req, res, next) => {
 
 // POST
 // Add Unit to map
-router.post('/games/:id/:playerId/add_unit/:location', requireToken, (req, res, next) => {
-    const gameId = req.params.id
-    const location = req.params.location
-    req.body.unit.commander = req.params.playerId
-    const defaultStats = unitStats(req.body.unit.type)
-    req.body.unit.upkeepCost = defaultStats.upkeepCost
-    req.body.unit.strength = defaultStats.strength
-    Unit.create(req.body.unit)
-        .then((unit) => {
-            Territory.findOne({gameId: gameId, number: location})
-                .then(territory => {
-                    territory.units.push(unit._id)
-                    territory.save()
-                })
-        })
-        .then(unit => {
-            res.status(201).json({ unit: unit })
-        })
-})
+// abandonned as we are no longer using documents for units
+// router.post('/games/:id/:playerId/add_unit/:location', requireToken, (req, res, next) => {
+//     const gameId = req.params.id
+//     const location = req.params.location
+//     req.body.unit.commander = req.params.playerId
+//     const defaultStats = unitStats(req.body.unit.type)
+//     req.body.unit.upkeepCost = defaultStats.upkeepCost
+//     req.body.unit.strength = defaultStats.strength
+//     Unit.create(req.body.unit)
+//         .then((unit) => {
+//             Territory.findOne({gameId: gameId, number: location})
+//                 .then(territory => {
+//                     territory.units.push(unit._id)
+//                     territory.save()
+//                 })
+//         })
+//         .then(unit => {
+//             res.status(201).json({ unit: unit })
+//         })
+// })
 
 // POST
 // add Player to game
@@ -326,15 +349,16 @@ router.delete('/games/:id', requireToken, (req, res, next) => {
 			// requireOwnership(req, game)
 			game.territories.forEach(territory => {
                 Territory.findById(territory)
-                    .then(territory => {
-                        territory.units.forEach(unit => {
-                            Unit.findById(unit)
-                                .then(unit => {
-                                    unit.deleteOne()
-                                })
-                        })
-                        return territory
-                    })
+                    // we are no longer using documents for units so this is un needed
+                    // .then(territory => {
+                    //     territory.units.forEach(unit => {
+                    //         Unit.findById(unit)
+                    //             .then(unit => {
+                    //                 unit.deleteOne()
+                    //             })
+                    //     })
+                    //     return territory
+                    // })
                     .then(territory => {
                         territory.deleteOne()
                     })
