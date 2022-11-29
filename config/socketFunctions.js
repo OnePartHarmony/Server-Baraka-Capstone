@@ -77,17 +77,19 @@ async function joinGame(roomId, user, callback) {
             if (gameIsFull) {
                 callback({invalid: 'Game is full, no more players can join.'})
             } else {
-                //add player to game
-                await addPlayer(roomId, user._id)
-                //add room id to user doc 
-                await joinRoom(user, roomId, addToCallback)
-                //leave any rooms socket was in so new room is only one
+                 //leave any rooms socket was in so new room is only one
                 //starting at index 1 because index 0 is always this.id
                 for (let i = 1; i < this.rooms.length; i++){
                     this.leave(room)
                 }
                 //join game room
                 this.join(user.gameRoomId)
+
+                //add player to game
+                await addPlayer(roomId, user._id, io)
+                //add room id to user doc 
+                await joinRoom(user, roomId, addToCallback)
+               
                 addToCallback({message: 'you joined the game!'})
                 callback(callbackObject)
                 io.to(roomId).emit('status', {message: `${user.username} has joined the game`})
@@ -126,3 +128,6 @@ async function reJoinGame(user, callback) {
         callback(callbackObject)
     }    
 }
+
+
+exports.io = io

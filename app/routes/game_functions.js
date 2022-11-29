@@ -18,28 +18,16 @@ const initializeMap = require('../scripts/scripts')
 
 
 // script for getting the current populated game data and returning it as an object
-async function getPopulatedGame(gameId) {
-    console.log(gameId)
+async function getPopulatedGame(roomId) {
+    console.log(roomId)
 
-    // Game.findOne({ roomId: gameId })
-    await Game.findById(gameId)
+    // Game.findById(gameId)
+    const popGame = await Game.findOne({ roomId: roomId })
         .populate({
             path: 'players',
                 populate : {
                     path: 'user', select : 'username'
                 }
-        })
-        .populate({
-            path : 'territories',
-                populate : {
-                    path : 'units',
-                    populate : {
-                        path : 'commander',
-                            populate : {
-                                path: 'user', select : 'username'
-                            }
-                    },
-                },
         })
         .populate({
             path: 'territories',    
@@ -52,14 +40,19 @@ async function getPopulatedGame(gameId) {
         })
 
 		.then(handle404)
-		.then((game) => {
-            
+		.then((game) => {            
             console.log(game)
             return game
         })
 		.catch(() => console.error())
+    return popGame
 }
 
+
+async function sendGameToRoom(roomId, io) {
+    const popGame = await getPopulatedGame(roomId)
+    io.to(roomId).emit('woohoo', {message: popGame})
+}
 
 
 // Script for adding units to territories during initial game setup phase
@@ -85,31 +78,31 @@ const initialPlacement = async (playerId, territoryId) => {
 
 
 // Script for initializing game
-const initializeGameBoard = (gameId) => {
-    const addTerritories = initializeMap(gameId)
+const initializeGameBoard = async (gameId, io) => {
+    // const addTerritories = initializeMap(gameId)
     Game.findById(gameId)
         .then(game => {
             game.orderSeasons()
             game.currentSeason = game.allSeasons[0]
-            game.save()
-            
-            if (game.territories.length < addTerritories.length) {
-                    addTerritories.forEach(territory => {
-                        Territory.create(territory)
-                            .then(territory => {
-                                let terrId = territory._id
-                                // we have to find the game each time to prevent parallel saves unfortunatly
-                                // may revisit by building an array than adding the whole array at once...
-                                Game.findById(gameId)
-                                    .then(game => {
-                                        game.territories.push(terrId)
-                                        return game.save()
-                                    })
-                            })
-                    })
-            
-            }
-        return game  
+            // game.save()
+            // addTerritories.forEach(territory => {
+            //     Territory.create(territory)
+            //         .then(territory => {
+            //             let terrId = territory._id
+            //             // we have to find the game each time to prevent parallel saves unfortunatly
+            //             // may revisit by building an array than adding the whole array at once...
+            //             Game.findById(gameId)
+            //                 .then(game => {
+            //                     game.territories.push(terrId)
+            //                     return game.save()
+            //                 })
+            //         })
+            // })
+        return game.save()
+        })
+        .then(game => {
+            sendGameToRoom(game.roomId, io)
+
         })
         // .then(game => {
         //     game.setPlacementOrder()
@@ -118,7 +111,7 @@ const initializeGameBoard = (gameId) => {
 } 
 
 // Script for adding a player to a game and randomly assigning a season
-async function addPlayer(roomId, userId) {
+async function addPlayer(roomId, userId, io) {
     let availableSeasons = orderOfSeasons.slice()
     let randIndex
     // First, we find the game
@@ -145,7 +138,7 @@ async function addPlayer(roomId, userId) {
                 
                 .then(game => {
                     if (game.players.length === game.numberOfPlayers) {
-                        initializeGameBoard(game._id)
+                        initializeGameBoard(game._id, io)
                     }
                 })
             })
@@ -238,5 +231,5 @@ async function checkFullGame(gameId, addToCallback) {
 
 
 
-module.exports = {generateRoomId, addPlayer, checkGameExistence, checkIfPlayer, checkFullGame, initialPlacement, getPopulatedGame }
+module.exports = { generateRoomId, addPlayer, checkGameExistence, checkIfPlayer, checkFullGame, initialPlacement, getPopulatedGame }
 
