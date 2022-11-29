@@ -135,7 +135,6 @@ async function checkGameExistence(roomId, addToCallback) {
 //check if user is a player in Game
 async function checkIfPlayer(gameId, user, addToCallback) {
     const player = await Game.findById(gameId)
-        // .populate('players')
         .populate({
             path : 'players',
                 populate : {
@@ -145,7 +144,7 @@ async function checkIfPlayer(gameId, user, addToCallback) {
         .then(game => {
             let foundPlayer = false
             game.players.forEach(player => {
-                console.log("here", player.user.username, user.username)
+            // I wanted to check this against ids, but they aren't referenced the same way
                 if (player.user.username === user.username) {
                     foundPlayer = true
                 }
