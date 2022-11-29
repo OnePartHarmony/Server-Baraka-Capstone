@@ -203,6 +203,7 @@ async function checkIfPlayer(gameId, user, addToCallback) {
         .then(game => {
             let foundPlayer = false
             game.players.forEach(player => {
+                console.log("here", player.user.username, user.username)
             // I wanted to check this against ids, but they aren't referenced the same way
                 if (player.user.username === user.username) {
                     foundPlayer = true
@@ -216,13 +217,13 @@ async function checkIfPlayer(gameId, user, addToCallback) {
 
 ////check if game is full (or if new player can be added)
 async function checkFullGame(gameId, addToCallback) {
+    
     const full = await Game.findById(gameId)
-        .then(game => {return game})
-        .finally(game => {
+        .then(game => {
             if (game.numberOfPlayers === game.players.length){
-                return false
-            } else {
                 return true
+            } else {
+                return false
             }
         })
         .catch(err => {addToCallback({error: err})})
@@ -231,5 +232,5 @@ async function checkFullGame(gameId, addToCallback) {
 
 
 
-module.exports = { generateRoomId, addPlayer, checkGameExistence, checkIfPlayer, checkFullGame, initialPlacement, getPopulatedGame }
+module.exports = { generateRoomId, addPlayer, checkGameExistence, checkIfPlayer, checkFullGame, initialPlacement, getPopulatedGame, sendGameToRoom }
 
