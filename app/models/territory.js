@@ -21,7 +21,7 @@ const territorySchema = new mongoose.Schema(
 		},
         wealth: Number,
 		abundance: Number,
-        adjacents: [],
+        adjacents: [Number],
         controlledBy: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: 'Player',

@@ -126,7 +126,7 @@ async function reJoinGame(user, callback) {
             sendGameToRoom(user.gameRoomId, io)
         }
         Promise.all([leaveAndJoin(this, user.gameRoomId)])
-        .then(console.log("rooms", this.rooms))
+        // .then(console.log("rooms", this.rooms))
         .then(callback({message: 'you re-joined the room!'}))
         
     } else {
