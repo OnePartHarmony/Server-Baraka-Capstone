@@ -13,7 +13,7 @@ const gameSchema = new mongoose.Schema(
             type: Number,
             required: true,
             // include 1 in this enum for quick testing of auto-initialize
-            enum: [2, 3, 4]
+            enum: [1, 2, 3, 4]
         },
 		territories: [{ type: ObjectId, ref: 'Territory' }],
 		players: [{ type: ObjectId, ref: 'Player' }],

@@ -94,7 +94,7 @@ const io = require('socket.io')(httpServer, {
 	path: '/baraka-socket/'
 })
 
-io.on("connection", async (socket) => {
+io.on("connection", (socket) => {
 	console.log("connected", socket.id)
 	sF.socketFunctions(io,socket)
 })

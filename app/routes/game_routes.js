@@ -43,7 +43,7 @@ const {generateRoomId, addPlayer} = require('./game_functions')
 // temp storage for various scripts
 // re-factor later
 
-// // Script for initializing game
+// Script for initializing game
 // const initializeGameBoard = (gameId) => {
 //     const addTerritories = initializeMap(gameId)
 //     Game.findById(gameId)
@@ -79,7 +79,7 @@ const {generateRoomId, addPlayer} = require('./game_functions')
 
 
 
-// // Script for adding a player to a game and randomly assigning a season
+// Script for adding a player to a game and randomly assigning a season
 // const addPlayer = (roomId, userId) => {
 //     let availableSeasons = orderOfSeasons.slice()
 //     let randIndex
@@ -115,7 +115,7 @@ const {generateRoomId, addPlayer} = require('./game_functions')
 
 
 
-// // This script is for generating a random room code for socket.io and ensuring it isn't currently in use
+// This script is for generating a random room code for socket.io and ensuring it isn't currently in use
 // const generateRoomId = () => {
 //     let randId = Math.floor(Math.random()*100000)
 //     if (randId < 10000) {
@@ -131,7 +131,6 @@ const {generateRoomId, addPlayer} = require('./game_functions')
 ////////////////////////////////////////
 // END Scripts for Routes
 ////////////////////////////////////////
-
 
 
 // INDEX
@@ -216,38 +215,38 @@ router.post('/games', requireToken, (req, res, next) => {
 
 //Intialize Game Board
 //PATCH /games/<id>/initialize
-router.patch('/games/:id/initialize', (req, res, next) => {
-    const gameId = req.params.id
-    // const game = Game.findById(gameId)
-    //     .then(game => console.log(game))
-    // // console.log('i am game', game)
-    // let numOfTerrInGame
-    const addTerritories = initializeMap(gameId)
-    Game.findById(gameId)
-        .then(game => {
-            console.log(game.territories.length)
-            return game.territories.length
-        })
-        .then(num => {
-            console.log(num)
-            if (num < addTerritories.length) {
-                    addTerritories.forEach(territory => {
-                        Territory.create(territory)
-                            .then(territory => {
-                                let terrId = territory._id
-                                Game.findById(gameId)
-                                    .then(game => {
-                                        game.territories.push(terrId)
-                                        return game.save()
-                                    })
-                            })
-                    })
-                return res.sendStatus(201)
-            } else {
-                return res.sendStatus(204)
-            }
-    })
-})
+// router.patch('/games/:id/initialize', (req, res, next) => {
+//     const gameId = req.params.id
+//     // const game = Game.findById(gameId)
+//     //     .then(game => console.log(game))
+//     // // console.log('i am game', game)
+//     // let numOfTerrInGame
+//     const addTerritories = initializeMap(gameId)
+//     Game.findById(gameId)
+//         .then(game => {
+//             console.log(game.territories.length)
+//             return game.territories.length
+//         })
+//         .then(num => {
+//             console.log(num)
+//             if (num < addTerritories.length) {
+//                     addTerritories.forEach(territory => {
+//                         Territory.create(territory)
+//                             .then(territory => {
+//                                 let terrId = territory._id
+//                                 Game.findById(gameId)
+//                                     .then(game => {
+//                                         game.territories.push(terrId)
+//                                         return game.save()
+//                                     })
+//                             })
+//                     })
+//                 return res.sendStatus(201)
+//             } else {
+//                 return res.sendStatus(204)
+//             }
+//     })
+// })
 
 // POST
 // Add Unit to map

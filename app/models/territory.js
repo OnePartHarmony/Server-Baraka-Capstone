@@ -8,7 +8,17 @@ const territorySchema = new mongoose.Schema(
 			required: true,
             enum: ['empty', 'field', 'farmland', 'water', 'mountain']
 		},
-		units: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Unit' }],
+		// units: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Unit' }],
+		priests: {
+			type: Number,
+			required: true,
+			default: 0
+		},
+		soldiers: {
+			type: Number,
+			required: true,
+			default: 0
+		},
         wealth: Number,
 		abundance: Number,
         adjacents: [],
