@@ -51,7 +51,7 @@ async function getPopulatedGame(roomId) {
 
 async function sendGameToRoom(roomId, io) {
     const popGame = await getPopulatedGame(roomId)
-    io.to(roomId).emit('woohoo', {message: popGame})
+    io.to(roomId).emit('gameData', {game: popGame})
 }
 
 
