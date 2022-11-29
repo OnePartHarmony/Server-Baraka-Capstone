@@ -66,4 +66,11 @@ gameSchema.methods.nextSeason = function nextSeason() {
     return this.currentSeason = this.allSeasons[index]
 }
 
+gameSchema.methods.nextPhase = function nextPhase() {
+    const phases = ['advance', 'excise', 'muster', 'sow']
+    let index = phase.indexOf(this.currentPhase)
+    index === phases.length? this.currentPhase = phases[0] : this.currentPhase = phases[index]
+
+}
+
 module.exports = mongoose.model('Game', gameSchema)
