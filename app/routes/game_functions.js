@@ -19,7 +19,7 @@ const initializeMap = require('../scripts/scripts')
 
 // script for getting the current populated game data and returning it as an object
 async function getPopulatedGame(roomId) {
-    console.log(roomId)
+    // console.log(roomId)
 
     // Game.findById(gameId)
     const popGame = await Game.findOne({ roomId: roomId })
@@ -41,7 +41,7 @@ async function getPopulatedGame(roomId) {
 
 		.then(handle404)
 		.then((game) => {            
-            console.log(game)
+            // console.log(game)
             return game
         })
 		.catch(() => console.error())
@@ -203,7 +203,6 @@ async function checkIfPlayer(gameId, user, addToCallback) {
         .then(game => {
             let foundPlayer = false
             game.players.forEach(player => {
-                console.log("here", player.user.username, user.username)
             // I wanted to check this against ids, but they aren't referenced the same way
                 if (player.user.username === user.username) {
                     foundPlayer = true
