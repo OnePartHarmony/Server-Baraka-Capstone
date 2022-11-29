@@ -1,3 +1,6 @@
+// This model is no longer in use, but will remain for future versions
+
+
 const mongoose = require('mongoose')
 
 const unitSchema = new mongoose.Schema(

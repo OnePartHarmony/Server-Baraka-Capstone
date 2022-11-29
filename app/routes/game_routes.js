@@ -154,7 +154,12 @@ router.get('/games', requireToken, (req, res, next) => {
 router.get('/games/:id', requireToken, (req, res, next) => {
 	// req.params.id will be set based on the `:id` in the route
 	Game.findById(req.params.id)
-        .populate('players')
+        .populate({
+            path: 'players',
+                populate : {
+                    path: 'user', select : 'username'
+                }
+        })
         .populate({
             path : 'territories',
                 populate : {
