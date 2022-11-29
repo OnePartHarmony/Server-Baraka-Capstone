@@ -232,3 +232,4 @@ async function checkFullGame(gameId, addToCallback) {
 
 
 module.exports = { generateRoomId, addPlayer, checkGameExistence, checkIfPlayer, checkFullGame, initialPlacement, getPopulatedGame }
+
