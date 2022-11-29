@@ -36,6 +36,7 @@ const initializeMap = require('../scripts/scripts')
 const adjacents = require('../constants')
 const {generateRoomId, addPlayer} = require('./game_functions')
 
+
 ///////////////////////////////////////
 // Scripts for Routes
 ///////////////////////////////////////
@@ -192,12 +193,12 @@ router.post('/games', requireToken, (req, res, next) => {
     req.body.game.host = req.body.user._id
 	Game.create(req.body.game)
         .then((game) => {            
-            addPlayer(game.roomId, game.host)
-            return game
+            addPlayer(roomId, req.body.user._id )
+            return game           
         })
 		// respond to succesful `create` with status 201 and JSON of new "game"
 		.then((game) => {
-            //add roomId to user document
+            // add roomId to user document
             User.findById(req.body.user._id)
                 .then(user => {                    
                     user.gameRoomId = roomId
@@ -206,7 +207,8 @@ router.post('/games', requireToken, (req, res, next) => {
                 .then(user => {
                     res.status(201).json({ game: game.toObject(), user: user.toObject() })
                 })
-		        .catch(next)            
+		        .catch(next)
+            // res.status(201).json({ game: game.toObject() })
 		})
 		.catch(next)
 })

@@ -126,30 +126,51 @@ const generateRoomId = () => {
 
 ////check if game exists with roomId
 async function checkGameExistence(roomId, addToCallback) {
-    const exists = await Game.findOne({ roomId: roomId })
-        .then(game => {return game})
-        .finally(game => {
-            if (game){
-                return game._id
-            } else {
-                return false
-            }
-        })
+    const gameId = await Game.findOne({ roomId: roomId })
+        .then(game => {return game._id})
         .catch(err => {addToCallback({error: err})})
-    return exists
+    return gameId
 }
 
 //check if user is a player in Game
 async function checkIfPlayer(gameId, user, addToCallback) {
     const player = await Game.findById(gameId)
-        .then(game => {return game})
-        .finally(game => {
-            return game.players.includes(user._id)
+        // .populate('players')
+        .populate({
+            path : 'players',
+                populate : {
+                    path : 'user'
+                }
+        })
+        .then(game => {
+            let foundPlayer = false
+            game.players.forEach(player => {
+                console.log("here", player.user.username, user.username)
+                if (player.user.username === user.username) {
+                    foundPlayer = true
+                }
+            })
+            return foundPlayer
         })
         .catch(err => {addToCallback({error: err})})
     return player
 }
 
+////check if game is full (or if new player can be added)
+async function checkFullGame(gameId, addToCallback) {
+    const full = await Game.findById(gameId)
+        .then(game => {return game})
+        .finally(game => {
+            if (game.numberOfPlayers === game.players.length){
+                return false
+            } else {
+                return true
+            }
+        })
+        .catch(err => {addToCallback({error: err})})
+    return full
+}
 
 
-module.exports = {generateRoomId, addPlayer, checkGameExistence, checkIfPlayer}
+
+module.exports = {generateRoomId, addPlayer, checkGameExistence, checkIfPlayer, checkFullGame}

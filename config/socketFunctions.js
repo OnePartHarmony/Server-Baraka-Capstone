@@ -1,6 +1,4 @@
-// const User = require('../app/models/user')
-const Game = require('../app/models/game')
-const { createGame, generateRoomId, checkGameExistence, checkIfPlayer } = require('../app/routes/game_functions')
+const { checkGameExistence, checkIfPlayer, checkFullGame } = require('../app/routes/game_functions')
 const {joinRoom} = require('../app/routes/user_function_routes')
 
 
@@ -49,35 +47,46 @@ exports.socketFunctions = (thisIo, thisSocket) => {
 //When join game is clicked and 'joinGame' event is sent from client with room id
 
 async function joinGame(roomId, user, callback) {
-
+    console.log("joinGame")
     //in order to add items to callback within different functions
     let callbackObject = {}
     const addToCallback = (object) => {
         callbackObject = Object.assign(callbackObject, object)
     }
 
-    //NEED TO check if room id is valid
-    const gameId = await checkGameExistence(user.gameRoomId, addToCallback)
-        
-    io.to(roomId).emit('status', {message: `${user.username} has joined the game`})
+    //check if room id is valid
+    const gameId = await checkGameExistence(roomId, addToCallback)
+    if (gameId) {
+        //check if user is already a player in this game
+        const userIsPlayer = await checkIfPlayer(gameId, user, addToCallback)
+        if (userIsPlayer) {
+            //add room id to user doc
+            await joinRoom(user, roomId, addToCallback)
+            //re-join the game
+            this.join(user.gameRoomId)
+            callback({message: 'you re-joined the room!'})
+        } else {
+            //check if game is full
+            const gameIsFull = await checkFullGame(gameId, addToCallback)
+            if (gameIsFull) {
+                callback({invalid: 'Game is full, no more players can join.'})
+            } else {
+                //add room id to user doc, join game room
+                await joinRoom(user, roomId, addToCallback)
+                this.join(user.gameRoomId)
+                callback({message: 'you joined the game!'})
+                io.to(roomId).emit('status', {message: `${user.username} has joined the game`})
+            }            
+        }
+    } else {
+        callback({invalid: 'Not a valid room key - try again or make a new game.'})
+    }
 
-    //NEED TO check if user is player, if not and more players can join, create player document linked to game
-    //send info to player
-    this.emit('status', {message: 'you are --color/season--'})
-    this.join(roomId)
-
-    //NEED TO check if all players are in game
-    //if all players are in and game hasn't started, start game
-    // const gameData = </find game/>
-    // io.to(roomId).emit('startNewGame', gameData)
-
-    //room id is added to user document
-    joinRoom(user, roomId, callback)
 }
 
 
 async function reJoinGame(user, callback) {    
-
+    console.log("reJoinGame")
     //in order to add items to callback within different functions
     let callbackObject = {}
     const addToCallback = (object) => {
@@ -87,12 +96,12 @@ async function reJoinGame(user, callback) {
     //check if room id is valid for existing game and user is player
     const gameId = await checkGameExistence(user.gameRoomId, addToCallback)
     const userIsPlayer = await checkIfPlayer(gameId, user, addToCallback)
-    console.log("here", gameId, userIsPlayer)
+    console.log(gameId, userIsPlayer)
     if (gameId && userIsPlayer) {
         this.join(user.gameRoomId)
         callback({message: 'you re-joined the room!'})
     } else {
-        //remove invalid game id from user document
+        //remove invalid room id from user document
         await joinRoom(user, null, addToCallback)
         addToCallback({invalid: 'tried to join invalid room'})
         callback(callbackObject)
