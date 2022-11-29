@@ -64,7 +64,8 @@ async function joinGame(roomId, user, callback) {
             await joinRoom(user, roomId, addToCallback)
             //re-join the game
             //leave any rooms socket was in so new room is only one
-            for (room of this.rooms){
+            //starting at index 1 because index 0 is always this.id
+            for (let i = 1; i < this.rooms.length; i++){
                 this.leave(room)
             }
             this.join(user.gameRoomId)
@@ -81,7 +82,8 @@ async function joinGame(roomId, user, callback) {
                 //add room id to user doc 
                 await joinRoom(user, roomId, addToCallback)
                 //leave any rooms socket was in so new room is only one
-                for (room of this.rooms){
+                //starting at index 1 because index 0 is always this.id
+                for (let i = 1; i < this.rooms.length; i++){
                     this.leave(room)
                 }
                 //join game room
@@ -111,7 +113,8 @@ async function reJoinGame(user, callback) {
     const userIsPlayer = await checkIfPlayer(gameId, user, addToCallback)
     if (gameId && userIsPlayer) {
         //leave any rooms socket was in so new room is only one
-        for (room of this.rooms){
+        //starting at index 1 because index 0 is always this.id
+        for (let i = 1; i < this.rooms.length; i++){
             this.leave(room)
         }
         this.join(user.gameRoomId)
