@@ -131,18 +131,20 @@ const {generateRoomId, addPlayer} = require('./game_functions')
 
 const buildTerritories = async (gameId) => {
     const addTerritories = initializeMap(gameId)
-    const territoryIds = []
     await addTerritories.forEach(territory => {
         Territory.create(territory)
             .then(territory => {
-                territoryIds.push(territory._id)
+                let terrId = territory._id
+                // we have to find the game each time to prevent parallel saves unfortunatly
+                // may revisit by building an array than adding the whole array at once...
+                Game.findById(gameId)
+                    .then(game => {
+                        game.territories.push(terrId)
+                        return game.save()
+                    })
             })
-        })
-    Game.findById(game.id)
-        .then(game => {
-            game.territories = territoryIds
-            game.save()
-        })
+    })
+    return
 }
 
 ////////////////////////////////////////
