@@ -1,5 +1,5 @@
-const { checkGameExistence, checkIfPlayer, checkFullGame } = require('../app/routes/game_functions')
-const {joinRoom} = require('../app/routes/user_function_routes')
+const { checkGameExistence, checkIfPlayer, checkFullGame, addPlayer } = require('../app/routes/game_functions')
+const {joinRoom} = require('../app/routes/user_functions')
 
 
 let io
@@ -59,22 +59,27 @@ async function joinGame(roomId, user, callback) {
     if (gameId) {
         //check if user is already a player in this game
         const userIsPlayer = await checkIfPlayer(gameId, user, addToCallback)
+        console.log(userIsPlayer)
         if (userIsPlayer) {
             //add room id to user doc
             await joinRoom(user, roomId, addToCallback)
             //re-join the game
             this.join(user.gameRoomId)
-            callback({message: 'you re-joined the room!'})
+            addToCallback({message: 'you re-joined the room!'})
+            callback(callbackObject)
         } else {
             //check if game is full
             const gameIsFull = await checkFullGame(gameId, addToCallback)
             if (gameIsFull) {
                 callback({invalid: 'Game is full, no more players can join.'})
             } else {
+                //add player to game
+                await addPlayer(roomId, user._id)
                 //add room id to user doc, join game room
                 await joinRoom(user, roomId, addToCallback)
                 this.join(user.gameRoomId)
-                callback({message: 'you joined the game!'})
+                addToCallback({message: 'you joined the game!'})
+                callback(callbackObject)
                 io.to(roomId).emit('status', {message: `${user.username} has joined the game`})
             }            
         }
@@ -96,7 +101,6 @@ async function reJoinGame(user, callback) {
     //check if room id is valid for existing game and user is player
     const gameId = await checkGameExistence(user.gameRoomId, addToCallback)
     const userIsPlayer = await checkIfPlayer(gameId, user, addToCallback)
-    console.log(gameId, userIsPlayer)
     if (gameId && userIsPlayer) {
         this.join(user.gameRoomId)
         callback({message: 'you re-joined the room!'})
