@@ -23,7 +23,12 @@ async function getPopulatedGame(gameId) {
 
     // Game.findOne({ roomId: gameId })
     await Game.findById(gameId)
-        .populate('players')
+        .populate({
+            path: 'players',
+                populate : {
+                    path: 'user', select : 'username'
+                }
+        })
         .populate({
             path : 'territories',
                 populate : {
