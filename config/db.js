@@ -1,7 +1,6 @@
 'use strict'
 
 // creating a base name for the mongodb
-// REPLACE THE STRING WITH YOUR OWN DATABASE NAME
 const mongooseBaseName = 'baraka-server'
 
 // create the mongodb uri for development and test

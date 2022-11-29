@@ -113,7 +113,7 @@ const initializeGameBoard = (gameId) => {
 } 
 
 // Script for adding a player to a game and randomly assigning a season
-async function addPlayer(roomId, userId, addToCallback, socket) {
+async function addPlayer(roomId, userId) {
     let availableSeasons = orderOfSeasons.slice()
     let randIndex
     // First, we find the game
@@ -135,16 +135,12 @@ async function addPlayer(roomId, userId, addToCallback, socket) {
                         // and modify the game document to add the player to the game and the season to the list of seasons in game                        
                         game.players.push(player._id)
                         game.allSeasons.push(availableSeasons[randIndex])
-                        socket.emit('status', {message: `Your season is ${availableSeasons[randIndex]}`})
                         return game.save()
                         })
                 
                 .then(game => {
                     if (game.players.length === game.numberOfPlayers) {
                         initializeGameBoard(game._id)
-                    } else {
-                        console.log("here", game.toObject())
-                        // addToCallback({ game: game.toObject() })
                     }
                 })
             })
@@ -163,26 +159,79 @@ const generateRoomId = () => {
     }
 }
 
-// CREATE GAME
-async function createGame(user, roomId, playerCount, addToCallback, socket) {
-    let gameData = {
-        // players: [user._id],
-        roomId: roomId,
-        host: user._id,
-        numberOfPlayers: playerCount
-    }
-    await Game.create(gameData)
-        .then((game) => {
-            addPlayer(roomId, user._id, addToCallback, socket)
-            return game
-        })
-        // respond to succesful `create` with status 201 and JSON of new "game"
-        .then((game) => {
-            addToCallback({ game: game.toObject() })
-        })
-        // if an error occurs, send it in the callback
+// // CREATE GAME
+// async function createGame(user, roomId, playerCount, addToCallback, socket) {
+//     let gameData = {
+//         // players: [user._id],
+//         roomId: roomId,
+//         host: user._id,
+//         numberOfPlayers: playerCount
+//     }
+//     await Game.create(gameData)
+//         .then((game) => {
+//             addPlayer(roomId, user._id, addToCallback, socket)
+//             return game
+//         })
+//         // respond to succesful `create` with status 201 and JSON of new "game"
+//         .then((game) => {
+//             addToCallback({ game: game.toObject() })
+//         })
+//         // if an error occurs, send it in the callback
+//         .catch(err => {addToCallback({error: err})})
+// }
+
+
+
+
+
+
+////check if game exists with roomId
+async function checkGameExistence(roomId, addToCallback) {
+    const gameId = await Game.findOne({ roomId: roomId })
+        .then(game => {return game._id})
         .catch(err => {addToCallback({error: err})})
+    return gameId
+}
+
+//check if user is a player in Game
+async function checkIfPlayer(gameId, user, addToCallback) {
+    const player = await Game.findById(gameId)
+        .populate({
+            path : 'players',
+                populate : {
+                    path : 'user'
+                }
+        })
+        .then(game => {
+            let foundPlayer = false
+            game.players.forEach(player => {
+            // I wanted to check this against ids, but they aren't referenced the same way
+                if (player.user.username === user.username) {
+                    foundPlayer = true
+                }
+            })
+            return foundPlayer
+        })
+        .catch(err => {addToCallback({error: err})})
+    return player
+}
+
+////check if game is full (or if new player can be added)
+async function checkFullGame(gameId, addToCallback) {
+    const full = await Game.findById(gameId)
+        .then(game => {return game})
+        .finally(game => {
+            if (game.numberOfPlayers === game.players.length){
+                return false
+            } else {
+                return true
+            }
+        })
+        .catch(err => {addToCallback({error: err})})
+    return full
 }
 
 
-module.exports = { createGame, generateRoomId, initialPlacement, getPopulatedGame }
+
+module.exports = {generateRoomId, addPlayer, checkGameExistence, checkIfPlayer, checkFullGame, initialPlacement, getPopulatedGame }
+

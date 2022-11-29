@@ -95,8 +95,10 @@ const io = require('socket.io')(httpServer, {
 })
 
 io.on("connection", (socket) => {
+	console.log("connected", socket.id)
 	sF.socketFunctions(io,socket)
 })
 
 
-module.exports = { app: app, io: io }
+
+module.exports = io
