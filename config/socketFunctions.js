@@ -44,8 +44,16 @@ exports.socketFunctions = (thisIo, thisSocket) => {
     
 // }
 
-//When join game is clicked and 'joinGame' event is sent from client with room id
+//leave any rooms socket was in so new room is only one, then join this room
+async function leaveAndJoin(socket, roomId) {
+    for (let i = 1; i < socket.rooms.length; i++){
+        socket.leave(socket.rooms[i])        
+    }
+    socket.join(roomId)
+}
 
+
+//When join game is clicked and 'joinGame' event is sent from client with room id
 async function joinGame(roomId, user, callback) {
     console.log("joinGame")
     //in order to add items to callback within different functions
@@ -60,36 +68,33 @@ async function joinGame(roomId, user, callback) {
         //check if user is already a player in this game
         const userIsPlayer = await checkIfPlayer(gameId, user, addToCallback)
         if (userIsPlayer) {
-            //add room id to user doc
-            await joinRoom(user, roomId, addToCallback)
-            //re-join the game
-            //leave any rooms socket was in so new room is only one
-            //starting at index 1 because index 0 is always this.id
-            for (let i = 1; i < this.rooms.length; i++){
-                this.leave(room)
-            }
-            this.join(user.gameRoomId)
-            addToCallback({message: 'you re-joined the room!'})
-            callback(callbackObject)
+            Promise.all([
+                //re-join the socket room
+                leaveAndJoin(this, user.gameRoomId),
+                //add room id to user doc
+                joinRoom(user, roomId, addToCallback)
+            ])
+            .then(() => {
+                addToCallback({message: 'you re-joined the room!'})
+                callback(callbackObject)
+            })         
+
         } else {
             //check if game is full
             const gameIsFull = await checkFullGame(gameId, addToCallback)
             if (gameIsFull) {
                 callback({invalid: 'Game is full, no more players can join.'})
             } else {
-                 //leave any rooms socket was in so new room is only one
-                //starting at index 1 because index 0 is always this.id
-                for (let i = 1; i < this.rooms.length; i++){
-                    this.leave(room)
-                }
-                //join game room
-                this.join(user.gameRoomId)
-
-                //add player to game
-                await addPlayer(roomId, user._id, io)
-                //add room id to user doc 
-                await joinRoom(user, roomId, addToCallback)
-               
+                await Promise.all([
+                    //add socket to room
+                    leaveAndJoin(this, user.gameRoomId),
+                    //add room id to user doc 
+                    joinRoom(user, roomId, addToCallback)
+                ])
+                .then(
+                    //add player to game
+                    addPlayer(roomId, user._id, io)
+                )                              
                 addToCallback({message: 'you joined the game!'})
                 callback(callbackObject)
                 io.to(roomId).emit('status', {message: `${user.username} has joined the game`})
@@ -114,13 +119,10 @@ async function reJoinGame(user, callback) {
     const gameId = await checkGameExistence(user.gameRoomId, addToCallback)
     const userIsPlayer = await checkIfPlayer(gameId, user, addToCallback)
     if (gameId && userIsPlayer) {
-        //leave any rooms socket was in so new room is only one
-        //starting at index 1 because index 0 is always this.id
-        for (let i = 1; i < this.rooms.length; i++){
-            this.leave(room)
-        }
-        this.join(user.gameRoomId)
-        callback({message: 'you re-joined the room!'})
+        Promise.all([leaveAndJoin(this, user.gameRoomId)])
+        .then(console.log("rooms", this.rooms))
+        .then(callback({message: 'you re-joined the room!'}))
+        
     } else {
         //remove invalid room id from user document
         await joinRoom(user, null, addToCallback)
