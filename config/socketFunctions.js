@@ -14,36 +14,6 @@ exports.socketFunctions = (thisIo, thisSocket) => {
     socket.on('reJoinGame', reJoinGame)
     socket.on('initialUnitPlacement', placeInitialUnit)
 }
-  
-//   async function createNewGame(user, playerCount, callback) {
-
-//     //in order to add items to callback within different functions
-//     let callbackObject = {}
-//     const addToCallback = (object) => {
-//         callbackObject = Object.assign(callbackObject, object)
-//     }
-
-
-//     //create unique and random room id
-//     const roomId = await generateRoomId()
-//     // host joins the game room 
-//     this.join(roomId)
-    
-//     Promise.all([
-//         //room id is added to user document
-//         joinRoom(user, roomId, addToCallback),
-//         //create game and player document linked to game
-//         createGame(user, roomId, playerCount, addToCallback, this)
-//     ])
-//     .then(() => {
-//         // callback returns the Room ID and user to the client
-//         callback(callbackObject)
-//     })
-
-//     //send info to player
-//     // this.emit('status', {message: 'you are --color/season--'})    
-    
-// }
 
 //leave any rooms socket was in so new room is only one, then join this room
 async function leaveAndJoin(socket, roomId) {
