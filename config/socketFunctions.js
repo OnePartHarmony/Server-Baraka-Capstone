@@ -1,4 +1,4 @@
-const { checkGameExistence, checkIfPlayer, checkFullGame, addPlayer, sendGameToRoom } = require('../app/routes/game_functions')
+const { checkGameExistence, checkIfPlayer, checkFullGame, addPlayer, sendGameToRoom, addInitialUnit } = require('../app/routes/game_functions')
 const {joinRoom} = require('../app/routes/user_functions')
 
 
@@ -12,6 +12,7 @@ exports.socketFunctions = (thisIo, thisSocket) => {
 
     socket.on('joinGame', joinGame)
     socket.on('reJoinGame', reJoinGame)
+    socket.on('initialUnitPlacement', placeInitialUnit)
 }
   
 //   async function createNewGame(user, playerCount, callback) {
@@ -137,5 +138,10 @@ async function reJoinGame(user, callback) {
     }    
 }
 
+async function placeInitialUnit(territoryId, playerId, gameId) {
+    const roomId = await addInitialUnit(territoryId, playerId, gameId)
+    // console.log(roomId)
+    sendGameToRoom(roomId, io) 
+}
 
 exports.io = io

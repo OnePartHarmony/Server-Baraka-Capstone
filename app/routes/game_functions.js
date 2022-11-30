@@ -7,6 +7,8 @@ const Player = require('../models/player')
 // to throw a custom error
 const customErrors = require('../../lib/custom_errors')
 
+const ObjectId = require('mongodb').ObjectId
+
 const { unitStats, orderOfSeasons } = require('../constants')
 
 // we'll use this function to send 404 when non-existant document is requested
@@ -229,7 +231,32 @@ async function checkFullGame(gameId, addToCallback) {
     return full
 }
 
+const addInitialUnit = async (territoryId, playerId, gameId) => {
+    const roomId = await Territory.findById(territoryId)
+        .then(territory => {
+            territory.controlledBy = playerId
+            territory.priests++
+            return territory.save()
+        })
+        .then(() => {
+            return Game.findById(gameId)
+                .then(game => {
+                    const newPlacementOrder = game.placementOrder.slice()
+                    newPlacementOrder.splice(0,1)
+                    if (newPlacementOrder.length === 0) {
+                        game.command = true
+                    }
+                    game.placementOrder = newPlacementOrder
+                    return game.save()
+                })
+                .then(game => {
+                    console.log(game.roomId)
+                    return game.roomId
+                })
+        })
+        console.log(roomId)
+    return roomId
+}
 
-
-module.exports = { generateRoomId, addPlayer, checkGameExistence, checkIfPlayer, checkFullGame, initialPlacement, getPopulatedGame, sendGameToRoom }
+module.exports = { generateRoomId, addPlayer, checkGameExistence, checkIfPlayer, checkFullGame, initialPlacement, getPopulatedGame, sendGameToRoom, addInitialUnit }
 
