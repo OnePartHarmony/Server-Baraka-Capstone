@@ -7,8 +7,6 @@ const Player = require('../models/player')
 // to throw a custom error
 const customErrors = require('../../lib/custom_errors')
 
-const ObjectId = require('mongodb').ObjectId
-
 const { unitStats, orderOfSeasons } = require('../constants')
 
 // we'll use this function to send 404 when non-existant document is requested
