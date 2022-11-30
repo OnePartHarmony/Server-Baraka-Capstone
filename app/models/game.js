@@ -17,6 +17,11 @@ const gameSchema = new mongoose.Schema(
         },
 		territories: [{ type: ObjectId, ref: 'Territory' }],
 		players: [{ type: ObjectId, ref: 'Player' }],
+        command: {
+            type: Boolean,
+            required: true,
+            default: false
+        },
         currentPhase: {
             type: String,
             enum: ['advance', 'battle', 'excise', 'muster', 'sow'],
