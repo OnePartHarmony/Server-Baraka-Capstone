@@ -24,6 +24,7 @@ const playerSchema = new mongoose.Schema(
             default: 0,
             required: true
         },
+        formationName: String,
         commands: [commandSchema],
     },
 	{

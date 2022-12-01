@@ -256,5 +256,110 @@ const addInitialUnit = async (territoryId, playerId, gameId) => {
     return roomId
 }
 
-module.exports = { generateRoomId, addPlayer, checkGameExistence, checkIfPlayer, checkFullGame, initialPlacement, getPopulatedGame, sendGameToRoom, addInitialUnit }
+const setCommandsInGame = async (gameId) => {
+    // get some infor from the game document
+    const game = await Game.findById(gameId)
+    const availableSeasons = game.allSeasons.slice()
+    const resOrder = [game.currentSeason]
+   
+    let advanceCommands = []
+    let advanceCommandsSorted = []
+    let otherCommands = []
+    let advanceRounds = 0
+    // put the seasons in the correct order based on the current season
+    // (game.allSeasons is already sorted in the correct order at game initialization)
+    let index = availableSeasons.indexOf(game.currentSeason)
+    for (let i = 1; i < availableSeasons.length; i++) {
+        index++
+        if (index = availableSeasons.length) {
+            index = 0
+        }
+        resOrder.push(availableSeasons[index])
+    }
+    // const finalSeason = resOrder[resOrder.length - 1]
+    // get all the players commands from the game in the player order
+    const playersCommands = []
+    for (let i = 0; i < availableSeasons.length; i++) {
+        player = await Player.findOne({ id: game.players, season: resOrder[i] })
+        playersCommands.push(player.commands)
+    }
+    playersCommands.forEach(list => {
+        let currentAdvanceRounds = 0
+        list.forEach(command => {
+            if (command.type === 'advance') {
+                currentAdvanceRounds ++
+                advanceCommands.push(command)
+            } else {
+                otherCommands.push(command._id)
+            }
+        })
+        if (currentAdvanceRounds > advanceRounds) {
+            advanceRounds = currentAdvanceRounds
+        }
+    })
+    for (let i = 1; i <= advanceRounds; i++) {
+        for (let j = 0; j < resOrder.length; j++) {
+            advanceCommands.forEach(command => {
+                if (command.season === resOrder[j] && command.advanceOrder === i) {
+                    return advanceCommandsSorted.push(command._id)
+                }
+            })
+        }
+    }
+    game.pendingCommands = advanceCommandsSorted(concat(otherCommands))
+    return game.save()
+}
+
+const setPlayerCommands = async (commandObject, playerId) => {
+    const formationName = commandObject.formation
+    const commands = commandObject.commandList
+    let numberOfPlayersWithCommands = 0
+    const player = await Player.findById(playerId)
+    commands.forEach(command => {
+        player.commands.push(command)
+    })
+    player.formationName = formationName
+    const savedPlayer = await player.save()
+    const game = await Game.find({players: savedPlayer._id})
+        .populate({ path: 'player' })
+    game.players.forEach(player =>{
+        if (player.commands.length > 0) {
+            numberOfPlayersWithCommands ++
+        }
+    })
+    if (numberOfPlayersWithCommands === game.numberOfPlayers) {
+        return true
+    } else {
+        return false
+    }
+}
+
+const gameCleanup = async (gameId) => {
+    const game = await Game.findById(gameId)
+    game.players.forEach(playerId => {
+        Player.findById(playerId)
+            .then(player => {
+                player.formationName = null
+                player.commands = []
+                return player.save()
+            })
+    })
+    game.pendingCommands = []
+    game.nextSeason()
+    return game.save()
+}
+
+const resolveRound = async (gameId) => {
+    const game = await Game.findById(gameId)
+    const resolvedGame = await game.pendingCommands.forEach(commandId => {
+        Player.findOne({'commands._id' : commandId})
+            .then(player => {
+                player.commands.id(commandId).executeCommand()
+            }) 
+    })
+    const cleanedGame = await gameCleanup(gameId)
+    return cleanedGame
+}
+
+module.exports = { generateRoomId, addPlayer, checkGameExistence, checkIfPlayer, checkFullGame, initialPlacement, getPopulatedGame, sendGameToRoom, addInitialUnit, setCommandsInGame, setPlayerCommands, resolveRound }
 
