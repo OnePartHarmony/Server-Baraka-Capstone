@@ -310,7 +310,29 @@ const setCommandsInGame = async (gameId) => {
     return game.save()
 }
 
-
+const setPlayerCommands = async (commandObject, playerId) => {
+    const formationName = commandObject.formation
+    const commands = commandObject.commandList
+    let numberOfPlayersWithCommands = 0
+    const player = await Player.findById(playerId)
+    commands.forEach(command => {
+        player.commands.push(command)
+    })
+    player.formationName = formationName
+    const savedPlayer = await player.save()
+    const game = await Game.find({players: savedPlayer._id})
+        .populate({ path: 'player' })
+    game.players.forEach(player =>{
+        if (player.commands.length > 0) {
+            numberOfPlayersWithCommands ++
+        }
+    })
+    if (numberOfPlayersWithCommands === game.numberOfPlayers) {
+        return true
+    } else {
+        return false
+    }
+}
 
 module.exports = { generateRoomId, addPlayer, checkGameExistence, checkIfPlayer, checkFullGame, initialPlacement, getPopulatedGame, sendGameToRoom, addInitialUnit, setCommandsInGame }
 
