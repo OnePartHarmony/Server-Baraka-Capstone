@@ -13,6 +13,8 @@ exports.socketFunctions = (thisIo, thisSocket) => {
     socket.on('joinGame', joinGame)
     socket.on('reJoinGame', reJoinGame)
     socket.on('initialUnitPlacement', placeInitialUnit)
+    socket.on('iDied', playerDied)
+    socket.on('iWon', playerWon)
 }
 
 //leave any rooms socket was in so new room is only one, then join this room
@@ -113,5 +115,24 @@ async function placeInitialUnit(territoryId, playerId, gameId) {
     // console.log(roomId)
     sendGameToRoom(roomId, io) 
 }
+
+async function playerDied(user, callback) {
+    //NEED TO turn player's reamining soldiers into population
+
+    //NEED TO send something back to dead player
+    callback({message: 'Your priests have died.'})
+
+    io.to(user.gameRoomId).emit('status', {message: `${user.username} has perished.\n${user.username}'s soldiers have become peasants.`})
+}
+
+async function playerWon(user) {
+    ///NEED?
+
+    io.to(user.gameRoomId).emit('playerWon', user.username)
+}
+
+
+
+
 
 exports.io = io
