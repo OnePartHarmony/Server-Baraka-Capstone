@@ -5,6 +5,7 @@ const Player = require('./player')
 
 const commandSchema = new mongoose.Schema(
 	{
+        advanceOrder: Number,
 		type: {
 			type: String,
 			enum: ['advance', 'excise', 'muster', 'sow'],
@@ -29,7 +30,7 @@ const commandSchema = new mongoose.Schema(
 			enum: ['soldier', 'priest']
 		},
 		soldiersMarching: Number,
-		priestsMarching: Number
+		priestsMarching: Number,
 	},
 	{
 		timestamps: true
@@ -41,16 +42,16 @@ const commandSchema = new mongoose.Schema(
 	}
 )
 
-commandSchema.methods.executeCommand = function executeCommand() {
+commandSchema.methods.executeCommand = async function executeCommand() {
 
-	let commander = Player.findById(this.issuedBy.id)
+	let commander = await Player.findById(this.issuedBy.id)
 
-	let origin = Territory.findById(this.originTerritory.id)
+	let origin = await Territory.findById(this.originTerritory.id)
 
 	let target
 
 	if (this.newTerritory) {
-		target = Territory.findById(this.newTerritory.id)
+		target = await Territory.findById(this.newTerritory.id)
 	}
 
     // saves all the pulled in documents

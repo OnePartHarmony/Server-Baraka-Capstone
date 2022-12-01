@@ -256,5 +256,61 @@ const addInitialUnit = async (territoryId, playerId, gameId) => {
     return roomId
 }
 
-module.exports = { generateRoomId, addPlayer, checkGameExistence, checkIfPlayer, checkFullGame, initialPlacement, getPopulatedGame, sendGameToRoom, addInitialUnit }
+const setCommandsInGame = async (gameId) => {
+    // get some infor from the game document
+    const game = await Game.findById(gameId)
+    const availableSeasons = game.allSeasons.slice()
+    const resOrder = [game.currentSeason]
+   
+    let advanceCommands = []
+    let advanceCommandsSorted = []
+    let otherCommands = []
+    let advanceRounds = 0
+    // put the seasons in the correct order based on the current season
+    // (game.allSeasons is already sorted in the correct order at game initialization)
+    let index = availableSeasons.indexOf(game.currentSeason)
+    for (let i = 1; i < availableSeasons.length; i++) {
+        index++
+        if (index = availableSeasons.length) {
+            index = 0
+        }
+        resOrder.push(availableSeasons[index])
+    }
+    // const finalSeason = resOrder[resOrder.length - 1]
+    // get all the players commands from the game in the player order
+    const playersCommands = []
+    for (let i = 0; i < availableSeasons.length; i++) {
+        player = await Player.findOne({ id: game.players, season: resOrder[i] })
+        playersCommands.push(player.commands)
+    }
+    playersCommands.forEach(list => {
+        let currentAdvanceRounds = 0
+        list.forEach(command => {
+            if (command.type === 'advance') {
+                currentAdvanceRounds ++
+                advanceCommands.push(command)
+            } else {
+                otherCommands.push(command._id)
+            }
+        })
+        if (currentAdvanceRounds > advanceRounds) {
+            advanceRounds = currentAdvanceRounds
+        }
+    })
+    for (let i = 1; i <= advanceRounds; i++) {
+        for (let j = 0; j < resOrder.length; j++) {
+            advanceCommands.forEach(command => {
+                if (command.season === resOrder[j] && command.advanceOrder === i) {
+                    return advanceCommandsSorted.push(command._id)
+                }
+            })
+        }
+    }
+    game.pendingCommands = advanceCommandsSorted(concat(otherCommands))
+    return game.save()
+}
+
+
+
+module.exports = { generateRoomId, addPlayer, checkGameExistence, checkIfPlayer, checkFullGame, initialPlacement, getPopulatedGame, sendGameToRoom, addInitialUnit, setCommandsInGame }
 

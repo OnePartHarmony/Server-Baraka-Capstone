@@ -36,6 +36,7 @@ const gameSchema = new mongoose.Schema(
             required: true
         },
         placementOrder: [],
+        pendingCommands: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Player.commands' }],
         host: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: 'User',
