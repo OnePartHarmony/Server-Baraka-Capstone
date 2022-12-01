@@ -334,5 +334,32 @@ const setPlayerCommands = async (commandObject, playerId) => {
     }
 }
 
-module.exports = { generateRoomId, addPlayer, checkGameExistence, checkIfPlayer, checkFullGame, initialPlacement, getPopulatedGame, sendGameToRoom, addInitialUnit, setCommandsInGame }
+const gameCleanup = async (gameId) => {
+    const game = await Game.findById(gameId)
+    game.players.forEach(playerId => {
+        Player.findById(playerId)
+            .then(player => {
+                player.formationName = null
+                player.commands = []
+                return player.save()
+            })
+    })
+    game.pendingCommands = []
+    game.nextSeason()
+    return game.save()
+}
+
+const resolveRound = async (gameId) => {
+    const game = await Game.findById(gameId)
+    const resolvedGame = await game.pendingCommands.forEach(commandId => {
+        Player.findOne({'commands._id' : commandId})
+            .then(player => {
+                player.commands.id(commandId).executeCommand()
+            }) 
+    })
+    const cleanedGame = await gameCleanup(gameId)
+    return cleanedGame
+}
+
+module.exports = { generateRoomId, addPlayer, checkGameExistence, checkIfPlayer, checkFullGame, initialPlacement, getPopulatedGame, sendGameToRoom, addInitialUnit, setCommandsInGame, setPlayerCommands, resolveRound }
 
