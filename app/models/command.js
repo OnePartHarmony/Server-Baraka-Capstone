@@ -77,14 +77,14 @@ commandSchema.methods.executeCommand = async function executeCommand() {
     }
 
 	// for moving marching units from one territory into another
-	const unitsMarchIn = function unitsMarchIn() {
-		origin.soldiers -= this.soldiersMarching
-		target.soldiers += this.soldiersMarching
-		origin.priests -= this.priestsMarching
-		target.priests += this.priestsMarching
-		target.controlledBy = origin.controlledBy
-        updateDocs()
-	}
+	// const unitsMarchIn = function unitsMarchIn() {
+	// 	origin.soldiers -= this.soldiersMarching
+	// 	target.soldiers += this.soldiersMarching
+	// 	origin.priests -= this.priestsMarching
+	// 	target.priests += this.priestsMarching
+	// 	target.controlledBy = origin.controlledBy
+    //     updateDocs()
+	// }
 
 	// CHECK IF COMMAND IS VALID
 	if (!this.issuedBy.equals(origin.controlledBy)) {
@@ -98,14 +98,16 @@ commandSchema.methods.executeCommand = async function executeCommand() {
 	switch (this.type) {
 		case 'advance':
 			// detectCombat will move units in or resolve combat then move units in
-			if (this.detectCombat()) {
+			if (this.detectCombat(origin, target)) {
 				// let originTerrFormation = PROMISEGetThisFormationPROMISE()
 				// let newTerrFormation = PROMISEGetThisFormationPROMISE()
 
 				// if (this.combat(origin, originTerrFormation, target, newTerrFormation)){
 				// 	unitsMarchIn()
 				// }
-				return "combat"
+				// return "combat"
+                this.combat()
+
 
 			} else {
 				// unitsMarchIn()
@@ -186,51 +188,45 @@ commandSchema.methods.executeCommand = async function executeCommand() {
 }
 
 // potential combat detection, run in 'advance' command function
-commandSchema.methods.detectCombat = function detectCombat() {
-    return false
-	if (!this.newTerritory.controlledBy ||
-		this.newTerritory.controlledBy === this.originTerritory.controlledBy ||
+commandSchema.methods.detectCombat = function detectCombat(origin, target) {
+    
+	if (!target.controlledBy ||
+		target.controlledBy === origin.controlledBy ||
 		(!target.soldiers && !target.priests) ) {
 
-		return true
+		return false
 	}
 	else {
 
-		return false
+		return true
 	}
 }
 
 // potential combat function
-commandSchema.methods.combat = function combat(originTerrFormation, newTerrFormation) {
+commandSchema.methods.combat = async function combat(commander, origin, target) {
 
-	let commander = Player.findById(this.issuedBy.id)
+    const attackFormation = commander.formation
+    const defender = await Player.findById(target.controlledBy)
+    const defenseFormation = defender.formation
 
-	let origin = Territory.findById(this.originTerritory.id)
-
-	let target
-
-	if (this.newTerritory) {
-		target = Territory.findById(this.newTerritory.id)
-	}
 
     // saves all the pulled in documents
     const updateDocs = function updateDocs() {
         origin.save()
         commander.save()
-        if (target) {
-            target.save()
-        }
+        target.save()
+
     }
 
 	// for moving marching units from one territory into another
-	const unitsMarchIn = function unitsMarchIn() {
-		origin.soldiers -= soldiersMarching
-		target.soldiers += soldiersMarching
-		origin.priests -= priestsMarching
-		target.priests += priestsMarching
-		target.controlledBy = origin.controlledBy
-        updateDocs()
-	}
+	// const unitsMarchIn = function unitsMarchIn() {
+	// 	origin.soldiers -= soldiersMarching
+	// 	target.soldiers += soldiersMarching
+	// 	origin.priests -= priestsMarching
+	// 	target.priests += priestsMarching
+	// 	target.controlledBy = origin.controlledBy
+    //     updateDocs()
+	// }
 
 	// grab initial attack strength
 	let attackStrength = this.priestsMarching + (this.soldiersMarching * 2)
@@ -256,8 +252,8 @@ commandSchema.methods.combat = function combat(originTerrFormation, newTerrForma
 	}
 
 	// formation bonus, most significant by far so perhaps should come before some other bonuses
-	let attRoll = dice.roll(originTerrFormation)
-	let defRoll = dice.roll(newTerrFormation)
+	let attRoll = dice.roll(attackFormation)
+	let defRoll = dice.roll(defenseFormation)
 
 	if (attRoll > defRoll) {
 		attackStrength *= 2
@@ -270,20 +266,24 @@ commandSchema.methods.combat = function combat(originTerrFormation, newTerrForma
 		// destroy all defenders
 		target.priests = 0
 		target.soldiers = 0
-		unitsMarchIn()
+        origin.soldiers -= this.soldiersMarching
+		target.soldiers += this.soldiersMarching
+		origin.priests -= this.priestsMarching
+		target.priests += this.priestsMarching
+		target.controlledBy = origin.controlledBy
 	} else {
 		// destroy all attackers
 		origin.priests -= this.priestsMarching
 		origin.soldiers -= this.soldiersMarching
 	}
 	updateDocs()
-
-	return {
-		attRoll: attRoll,
-		defRoll: defRoll,
-		attackFinal: attackStrength,
-		defenseFinal: defenseStrength
-	}
+    return true
+	// return {
+	// 	attRoll: attRoll,
+	// 	defRoll: defRoll,
+	// 	attackFinal: attackStrength,
+	// 	defenseFinal: defenseStrength
+	// }
 }
 
 module.exports = commandSchema
