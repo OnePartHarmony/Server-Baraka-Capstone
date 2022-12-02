@@ -13,6 +13,7 @@ const { unitStats, orderOfSeasons } = require('../constants')
 const handle404 = customErrors.handle404
 
 const initializeMap = require('../scripts/scripts')
+const game = require('../models/game')
 // const adjacents = require('../constants')
 // const game = require('../models/game')
 
@@ -381,25 +382,50 @@ const gameCleanup = async (gameId) => {
 
 }
 
-const resolveRound = async (gameId) => {
+const resolveRound = async (gameId, io) => {
     const game = await Game.findById(gameId)
-        game.pendingCommands.forEach(commandId => {
-            Player.findOne({'commands._id' : commandId})
+    // game.pendingCommands.forEach(commandId => {
+    //     Player.findOne({'commands._id' : commandId})
+    //         .then(player => {
+    //             // console.log('Im a player:', player)
+    //             return subDoc = player.commands.id(commandId)
+    //             // console.log('Im a subdoc:', subDoc)
+    //         })
+    //         .then(subDoc => {    
+    //             const executed = subDoc.executeCommand()
+    //         })   
+    // })
+    const executeOneByOne = async (array, i) => {
+        console.log("i", i)
+        if (i < array.length) {
+            const executed = await Player.findOne({'commands._id' : array[i]})
                 .then(player => {
                     // console.log('Im a player:', player)
-                    return subDoc = player.commands.id(commandId)
+                    return subDoc = player.commands.id(array[i])
                     // console.log('Im a subdoc:', subDoc)
                 })
                 .then(subDoc => {    
-                    const executed = subDoc.executeCommand()
-                })        
-        })
+                    return subDoc.executeCommand()
+                })
+            console.log("what did we get?", executed)
+            if (executed) {
+                executeOneByOne(array, i + 1)
+            } else {
+                return false
+            }
+        } else {
+            return true
+        }
+    }
+    const finishedAll = await executeOneByOne(game.pendingCommands, 0)
+    if (finishedAll === false) {        
+        io.to(game.roomId).emit('status', {message: 'failed to execute all commands'})
+    } else if (finishedAll === true) {
+        sendGameToRoom(game.roomId, io)        
+    }
         
-        
-        
-    const cleanedGame = await gameCleanup(game._id)
-    return cleanedGame
-    // return resolvedGameId
+    // const cleanedGame = await gameCleanup(game._id)
+    // return cleanedGame
 }
 
 module.exports = { generateRoomId, addPlayer, checkGameExistence, checkIfPlayer, checkFullGame, initialPlacement, getPopulatedGame, sendGameToRoom, addInitialUnit, setCommandsInGame, setPlayerCommands, resolveRound, gameCleanup }

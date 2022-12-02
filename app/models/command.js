@@ -77,6 +77,7 @@ commandSchema.methods.executeCommand = async function executeCommand() {
 
 	// CHECK IF COMMAND IS VALID
 	if (!this.issuedBy.equals(origin.controlledBy)) {
+		console.log('falseOwnership', this.issuedBy.equals(origin.controlledBy))
 		return false
 	}
 
@@ -85,8 +86,8 @@ commandSchema.methods.executeCommand = async function executeCommand() {
 
 			// detectCombat will move units in or resolve combat then move units in
 			if (this.detectCombat(origin, target)) {
-                this.combat(commander, origin, target)
-
+                const fought = await this.combat(commander, origin, target)
+				return fought
 			} else {
 				// unitsMarchIn()
 				// updateDocs()
@@ -267,6 +268,7 @@ commandSchema.methods.combat = async function combat(commander, origin, target) 
 		origin.priests -= this.priestsMarching
 		origin.soldiers -= this.soldiersMarching
 	}
+
 	updateDocs()
     return true
 	// return {
