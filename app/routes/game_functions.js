@@ -330,7 +330,6 @@ const setPlayerCommands = async (commandObject, playerId) => {
     //     player.commands.push(command)
     // })
     player.commands = commands
-    console.log('CCCCCCCC', player.commands, commands)
     player.formationName = formationName
     const savedPlayer = await player.save()
     const game = await Game.findOne({players: savedPlayer._id}) 
@@ -384,17 +383,19 @@ const gameCleanup = async (gameId) => {
 
 const resolveRound = async (gameId) => {
     const game = await Game.findById(gameId)
-    game.pendingCommands.forEach(commandId => {
-        Player.findOne({'commands._id' : commandId})
-            .then(player => {
-                // console.log('Im a player:', player)
-                return subDoc = player.commands.id(commandId)
-                // console.log('Im a subdoc:', subDoc)
-            })
-            .then(subDoc => {    
-                subDoc.executeCommand()
-            })        
-    })
+        game.pendingCommands.forEach(commandId => {
+            Player.findOne({'commands._id' : commandId})
+                .then(player => {
+                    // console.log('Im a player:', player)
+                    return subDoc = player.commands.id(commandId)
+                    // console.log('Im a subdoc:', subDoc)
+                })
+                .then(subDoc => {    
+                    const executed = subDoc.executeCommand()
+                })        
+        })
+        
+        
         
     const cleanedGame = await gameCleanup(game._id)
     return cleanedGame

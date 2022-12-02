@@ -1,7 +1,6 @@
 const mongoose = require('mongoose')
-const dice = require('../scripts/scripts')
+const randomRange = require('../scripts/scripts')
 const Territory = require('./territory')
-const Player = require('./player')
 
 const commandSchema = new mongoose.Schema(
 	{
@@ -54,7 +53,7 @@ const commandSchema = new mongoose.Schema(
 
 commandSchema.methods.executeCommand = async function executeCommand() {
     // let parent = this.parent()
-    console.log('command type: ', this.type)
+    // console.log('command type: ', this.type)
 	let commander = this.parent()
 
 	let origin = await Territory.findById(this.originTerritory)
@@ -63,7 +62,7 @@ commandSchema.methods.executeCommand = async function executeCommand() {
 	let target
 
 	if (this.newTerritory) {
-        console.log('a new terr')
+        // console.log('a new terr')
 		target = await Territory.findById(this.newTerritory)
 	}
 
@@ -76,38 +75,17 @@ commandSchema.methods.executeCommand = async function executeCommand() {
         }
     }
 
-	// for moving marching units from one territory into another
-	// const unitsMarchIn = function unitsMarchIn() {
-	// 	origin.soldiers -= this.soldiersMarching
-	// 	target.soldiers += this.soldiersMarching
-	// 	origin.priests -= this.priestsMarching
-	// 	target.priests += this.priestsMarching
-	// 	target.controlledBy = origin.controlledBy
-    //     updateDocs()
-	// }
-
 	// CHECK IF COMMAND IS VALID
 	if (!this.issuedBy.equals(origin.controlledBy)) {
-        // console.log(this.issuedBy)
-        // console.log(origin.controlledBy)
-        // console.log('valid command? ', !this.issuedBy.equals(origin.controlledBy))
-		// command was cancelled, notify player
 		return false
 	}
 
 	switch (this.type) {
 		case 'advance':
+
 			// detectCombat will move units in or resolve combat then move units in
 			if (this.detectCombat(origin, target)) {
-				// let originTerrFormation = PROMISEGetThisFormationPROMISE()
-				// let newTerrFormation = PROMISEGetThisFormationPROMISE()
-
-				// if (this.combat(origin, originTerrFormation, target, newTerrFormation)){
-				// 	unitsMarchIn()
-				// }
-				// return "combat"
-                this.combat()
-
+                this.combat(commander, origin, target)
 
 			} else {
 				// unitsMarchIn()
@@ -205,17 +183,17 @@ commandSchema.methods.detectCombat = function detectCombat(origin, target) {
 // potential combat function
 commandSchema.methods.combat = async function combat(commander, origin, target) {
 
-    const attackFormation = commander.formation
-    const defender = await Player.findById(target.controlledBy)
-    const defenseFormation = defender.formation
-
+    const attackFormation = commander.formationName
+	/////NEED a way to get defender formation
+    // const defender = await Player.findById(target.controlledBy)
+    // const defenseFormation = defender.formation
+	const defenseFormation = attackFormation
 
     // saves all the pulled in documents
-    const updateDocs = function updateDocs() {
+    const updateDocs = () => {
         origin.save()
         commander.save()
         target.save()
-
     }
 
 	// for moving marching units from one territory into another
@@ -230,6 +208,7 @@ commandSchema.methods.combat = async function combat(commander, origin, target) 
 
 	// grab initial attack strength
 	let attackStrength = this.priestsMarching + (this.soldiersMarching * 2)
+	console.log("attackStrength", attackStrength)
 
 	// bonus for leadership
 	if (this.priestsMarching) {
@@ -237,20 +216,32 @@ commandSchema.methods.combat = async function combat(commander, origin, target) 
 	}
 
 	// initial defense strength
-	let defenseStrength = this.newTerritory.priests + (2 * this.newTerritory.soldiers)
+	let defenseStrength = target.priests + (2 * target.soldiers)
+	console.log("defenseStrength", defenseStrength)
 
 	// bonus for leadership
-	if (this.newTerritory.priests) {
+	if (target.priests) {
 		defenseStrength += target.soldiers
 	}
 
 	// mountain terrain buff
-	if (origin.type === 'mountain' && this.newTerritory.type !== 'mountain') {
+	if (origin.type === 'mountain' && target.type !== 'mountain') {
 		attackStrength += 3
-	} else if (this.newTerritory.type === 'mountain' && origin.type !== 'mountain') {
+	} else if (target.type === 'mountain' && origin.type !== 'mountain') {
 		defenseStrength += 3
 	}
 
+	// dice.roll('charge') rolls the charge die
+	const dice = {
+		'Hedgehog': [0, 5, 5, 5, 5, 5],
+		'Phalanx': [1, 1, 6, 6, 6, 6],
+		'Skirmish': [2, 2, 2, 7, 7, 7],
+		'Flanking': [3, 3, 3, 3, 8, 8],
+		'Charging': [4, 4, 4, 4, 4, 9],
+		roll: function (formation) {
+			return dice[formation][randomRange(0, 5)]
+		}
+	}
 	// formation bonus, most significant by far so perhaps should come before some other bonuses
 	let attRoll = dice.roll(attackFormation)
 	let defRoll = dice.roll(defenseFormation)

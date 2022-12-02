@@ -5,17 +5,17 @@ const randomRange = (min, max) => {
     return Math.floor(Math.random() * (max + 1 - min) + min)
 }
 
-// dice.roll('charge') rolls the charge die
-const dice = {
-    'Hedgehog': [0, 5, 5, 5, 5, 5],
-    'Phalanx': [1, 1, 6, 6, 6, 6],
-    'Skirmish': [2, 2, 2, 7, 7, 7],
-    'Flanking': [3, 3, 3, 3, 8, 8],
-    'Charging': [4, 4, 4, 4, 4, 9],
-    roll: function (formation) {
-        return dice[formation][randomRange(0, 5)]
-    }
-}
+// // dice.roll('charge') rolls the charge die
+// const dice = {
+//     'Hedgehog': [0, 5, 5, 5, 5, 5],
+//     'Phalanx': [1, 1, 6, 6, 6, 6],
+//     'Skirmish': [2, 2, 2, 7, 7, 7],
+//     'Flanking': [3, 3, 3, 3, 8, 8],
+//     'Charging': [4, 4, 4, 4, 4, 9],
+//     roll: function (formation) {
+//         return dice[formation][randomRange(0, 5)]
+//     }
+// }
 
 // create random map
 const initializeMap = (gameId) => {
@@ -67,4 +67,4 @@ const initializeMap = (gameId) => {
 }
 
 
-module.exports = initializeMap, randomRange, dice
+module.exports = initializeMap, randomRange
