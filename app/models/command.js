@@ -83,7 +83,6 @@ commandSchema.methods.executeCommand = async function executeCommand() {
 
 	switch (this.type) {
 		case 'advance':
-
 			// detectCombat will move units in or resolve combat then move units in
 			if (this.detectCombat(origin, target)) {
                 const fought = await this.combat(commander, origin, target)
