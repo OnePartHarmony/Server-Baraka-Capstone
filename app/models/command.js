@@ -1,5 +1,4 @@
 const mongoose = require('mongoose')
-const randomRange = require('../scripts/scripts')
 const Territory = require('./territory')
 
 const commandSchema = new mongoose.Schema(
@@ -229,6 +228,11 @@ commandSchema.methods.combat = async function combat(commander, origin, target) 
 		attackStrength += 3
 	} else if (target.type === 'mountain' && origin.type !== 'mountain') {
 		defenseStrength += 3
+	}
+
+	// random number from min to max inclusive
+	const randomRange = (min, max) => {
+		return Math.floor(Math.random() * (max + 1 - min) + min)
 	}
 
 	// dice.roll('charge') rolls the charge die

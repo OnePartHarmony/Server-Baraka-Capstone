@@ -413,15 +413,16 @@ const resolveRound = async (gameId, io) => {
             } else {
                 return false
             }
-        } else {
-            return true
         }
+        return true 
     }
     const finishedAll = await executeOneByOne(game.pendingCommands, 0)
+    console.log("finishedAll", finishedAll)
     if (finishedAll === false) {        
         io.to(game.roomId).emit('status', {message: 'failed to execute all commands'})
     } else if (finishedAll === true) {
-        sendGameToRoom(game.roomId, io)        
+        const cleanedGame = await gameCleanup(game._id)
+        sendGameToRoom(cleanedGame.roomId, io)        
     }
         
     // const cleanedGame = await gameCleanup(game._id)
