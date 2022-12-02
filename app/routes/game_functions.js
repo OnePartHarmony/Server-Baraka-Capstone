@@ -301,10 +301,12 @@ const setCommandsInGame = async (gameId) => {
             advanceRounds = currentAdvanceRounds
         }
     })
+    console.log('advance commands: ', advanceCommands)
     for (let i = 1; i <= advanceRounds; i++) {
         for (let j = 0; j < resOrder.length; j++) {
             advanceCommands.forEach(command => {
-                if (command.season === resOrder[j] && command.advanceOrder === i) {
+                if (command.commanderSeason === resOrder[j] && command.advanceOrder === i) {
+                    console.log('found an advance')
                     return advanceCommandsSorted.push(command._id)
                 }
             })
@@ -316,10 +318,11 @@ const setCommandsInGame = async (gameId) => {
 }
 
 const setPlayerCommands = async (commandObject, playerId) => {
+    console.log(commandObject)
     const formationName = commandObject.formation
     // console.log('formation: ', formationName)
     const commands = commandObject.commandList
-    // console.log('commands: ',commands)
+    console.log('commands: ',commands)
     let numberOfPlayersWithCommands = 0
     const player = await Player.findById(playerId)
     // commands.forEach(command => {

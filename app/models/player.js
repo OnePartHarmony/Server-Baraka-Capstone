@@ -11,7 +11,7 @@ const playerSchema = new mongoose.Schema(
 		},
         gold: {
             type: Number,
-            default: 0,
+            default: 5,
             required: true,
         },
         season: {
