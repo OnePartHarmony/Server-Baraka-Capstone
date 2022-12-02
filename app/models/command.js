@@ -29,8 +29,18 @@ const commandSchema = new mongoose.Schema(
 			type: String,
 			enum: ['soldier', 'priest']
 		},
-		soldiersMarching: Number,
-		priestsMarching: Number,
+		soldiersMarching: {
+            type: Number,
+            default: 0
+        },
+		priestsMarching: {
+            type: Number,
+            default: 0
+        },
+        commanderSeason: {
+            type: String,
+            enum: ['spring', 'summer', 'autumn', 'winter']
+        },
 	},
 	{
 		timestamps: true
@@ -43,9 +53,9 @@ const commandSchema = new mongoose.Schema(
 )
 
 commandSchema.methods.executeCommand = async function executeCommand() {
-    let parent = this.parent()
+    // let parent = this.parent()
     console.log('command type: ', this.type)
-	let commander = parent._id
+	let commander = this.parent()
 
 	let origin = await Territory.findById(this.originTerritory)
     // console.log('look at me... Im the origin:', origin)
@@ -53,13 +63,14 @@ commandSchema.methods.executeCommand = async function executeCommand() {
 	let target
 
 	if (this.newTerritory) {
+        console.log('a new terr')
 		target = await Territory.findById(this.newTerritory)
 	}
 
     // saves all the pulled in documents
     const updateDocs = () => {
         origin.save()
-        parent.save()
+        commander.save()
         if (target) {
             target.save()
         }
@@ -67,40 +78,47 @@ commandSchema.methods.executeCommand = async function executeCommand() {
 
 	// for moving marching units from one territory into another
 	const unitsMarchIn = function unitsMarchIn() {
-		origin.soldiers -= soldiersMarching
-		target.soldiers += soldiersMarching
-		origin.priests -= priestsMarching
-		target.priests += priestsMarching
+		origin.soldiers -= this.soldiersMarching
+		target.soldiers += this.soldiersMarching
+		origin.priests -= this.priestsMarching
+		target.priests += this.priestsMarching
 		target.controlledBy = origin.controlledBy
+        updateDocs()
 	}
 
-	// // CHECK IF COMMAND IS VALID
-	// if (this.issuedBy != origin.controlledBy) {
-    //     console.log(this.issuedBy)
-    //     console.log(origin.controlledBy)
-    //     console.log('valid command? ',this.issuedBy != origin.controlledBy)
-	// 	// command was cancelled, notify player
-	// 	return false
-	// }
+	// CHECK IF COMMAND IS VALID
+	if (!this.issuedBy.equals(origin.controlledBy)) {
+        // console.log(this.issuedBy)
+        // console.log(origin.controlledBy)
+        // console.log('valid command? ', !this.issuedBy.equals(origin.controlledBy))
+		// command was cancelled, notify player
+		return false
+	}
 
 	switch (this.type) {
-		// case 'advance':
-		// 	// detectCombat will move units in or resolve combat then move units in
-		// 	if (this.detectCombat()) {
-		// 		// let originTerrFormation = PROMISEGetThisFormationPROMISE()
-		// 		// let newTerrFormation = PROMISEGetThisFormationPROMISE()
+		case 'advance':
+			// detectCombat will move units in or resolve combat then move units in
+			if (this.detectCombat()) {
+				// let originTerrFormation = PROMISEGetThisFormationPROMISE()
+				// let newTerrFormation = PROMISEGetThisFormationPROMISE()
 
-		// 		// if (this.combat(origin, originTerrFormation, target, newTerrFormation)){
-		// 		// 	unitsMarchIn()
-		// 		// }
-		// 		return "combat"
+				// if (this.combat(origin, originTerrFormation, target, newTerrFormation)){
+				// 	unitsMarchIn()
+				// }
+				return "combat"
 
-		// 	} else {
-		// 		unitsMarchIn()
-		// 		updateDocs()
-        //         return true
-		// 	}
-        //     break
+			} else {
+				// unitsMarchIn()
+				// updateDocs()
+                origin.soldiers -= this.soldiersMarching
+		        target.soldiers += this.soldiersMarching
+		        origin.priests -= this.priestsMarching
+		        target.priests += this.priestsMarching
+		        target.controlledBy = origin.controlledBy
+                updateDocs()
+                return true
+			}
+            break
 		case 'excise':
 			// this command cannot be a valid option in front end if territory wealth < 1 or no priests, this is backend double check
 			if (origin.wealth < 1 || !origin.priests) {
@@ -169,6 +187,7 @@ commandSchema.methods.executeCommand = async function executeCommand() {
 
 // potential combat detection, run in 'advance' command function
 commandSchema.methods.detectCombat = function detectCombat() {
+    return false
 	if (!this.newTerritory.controlledBy ||
 		this.newTerritory.controlledBy === this.originTerritory.controlledBy ||
 		(!target.soldiers && !target.priests) ) {
@@ -210,6 +229,7 @@ commandSchema.methods.combat = function combat(originTerrFormation, newTerrForma
 		origin.priests -= priestsMarching
 		target.priests += priestsMarching
 		target.controlledBy = origin.controlledBy
+        updateDocs()
 	}
 
 	// grab initial attack strength
