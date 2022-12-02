@@ -123,8 +123,8 @@ async function issueCommands(commandObject, playerId, gameId) {
     if (isLast) {
         const game = await setCommandsInGame(gameId)
         const resolvedGame = await resolveRound(game._id)
-        const cleanedGame = await gameCleanup(resolvedGame._id)
-        sendGameToRoom(cleanedGame.roomId, io)
+        
+        sendGameToRoom(resolvedGame.roomId, io)
     } 
 }
 

@@ -322,10 +322,11 @@ const setPlayerCommands = async (commandObject, playerId) => {
     // console.log('commands: ',commands)
     let numberOfPlayersWithCommands = 0
     const player = await Player.findById(playerId)
-    commands.forEach(command => {
-        // console.log('avast, the command: ', command)
-        player.commands.push(command)
-    })
+    // commands.forEach(command => {
+    //     // console.log('avast, the command: ', command)
+    //     player.commands.push(command)
+    // })
+    player.commands = commands
     player.formationName = formationName
     const savedPlayer = await player.save()
     const game = await Game.findOne({players: savedPlayer._id}) 
@@ -351,48 +352,51 @@ const setPlayerCommands = async (commandObject, playerId) => {
 const gameCleanup = async (gameId) => {
     // const game = await 
     const game = await Game.findById(gameId)
-        .then(game => {
-            game.players.forEach(playerId => {
+    players = game.players
+        // .then(game => {
+            players.forEach(playerId => {
                 Player.findById(playerId)
                     .then(player => {
-                        player.formationName = null
-                        player.commands = []
-                        return player.save()
+                        return player.resetCommands()
+                        // player.formationName = null
+                        // player.commands = []
+                        // return player.save()
                     })
             })
-            return game
-        })
-        .then(game => {    
-            game.pendingCommands = []
-            game.nextSeason()
-            console.log('squeky, squeky. All Clean')
-            return game.save()
-        })
-    return game
+        //     return game
+        // })
+        // .then(game => {    
+        //     game.pendingCommands = []
+        //     game.nextSeason()
+        //     console.log('squeky, squeky. All Clean')
+        //     return game.save()
+        // })
+    game.pendingCommands = []
+    game.nextSeason()
+    console.log('squeky, squeky. All Clean')
+    return game.save()
+
 }
 
 const resolveRound = async (gameId) => {
-    const resolvedGameId = await Game.findById(gameId)
-        .then(game => {
-            game.pendingCommands.forEach(commandId => {
-                Player.findOne({'commands._id' : commandId})
-                    .then(player => {
-                        // console.log('Im a player:', player)
-                        return subDoc = player.commands.id(commandId)
-                        // console.log('Im a subdoc:', subDoc)
-                    })
-                    .then(subDoc => {    
-                        const executed = subDoc.executeCommand()
-                    })        
-            })
-            return game    
+    const game = await Game.findById(gameId)
+        game.pendingCommands.forEach(commandId => {
+            Player.findOne({'commands._id' : commandId})
+                .then(player => {
+                    // console.log('Im a player:', player)
+                    return subDoc = player.commands.id(commandId)
+                    // console.log('Im a subdoc:', subDoc)
+                })
+                .then(subDoc => {    
+                    const executed = subDoc.executeCommand()
+                })        
         })
-        .then(game => {
-            return game.id
-        })
-    // const cleanedGame = await gameCleanup(gameId)
-    // return cleanedGame
-    return resolvedGameId
+        
+        
+        
+    const cleanedGame = await gameCleanup(game._id)
+    return cleanedGame
+    // return resolvedGameId
 }
 
 module.exports = { generateRoomId, addPlayer, checkGameExistence, checkIfPlayer, checkFullGame, initialPlacement, getPopulatedGame, sendGameToRoom, addInitialUnit, setCommandsInGame, setPlayerCommands, resolveRound, gameCleanup }

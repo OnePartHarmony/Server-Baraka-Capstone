@@ -43,7 +43,7 @@ const commandSchema = new mongoose.Schema(
 )
 
 commandSchema.methods.executeCommand = async function executeCommand() {
-    parent = this.parent()
+    let parent = this.parent()
     console.log('command type: ', this.type)
 	let commander = parent._id
 
@@ -57,15 +57,12 @@ commandSchema.methods.executeCommand = async function executeCommand() {
 	}
 
     // saves all the pulled in documents
-    const updateDocs = async () => {
-        let updatedDocumentArray = []
-        
-        updatedDocumentArray.push( await origin.save())
-        updatedDocumentArray.push( await parent.save())
+    const updateDocs = () => {
+        origin.save()
+        parent.save()
         if (target) {
-            updatedDocumentArray.push( await target.save())
+            target.save()
         }
-        return updatedDocumentArray
     }
 
 	// for moving marching units from one territory into another
