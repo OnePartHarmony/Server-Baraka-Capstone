@@ -1,4 +1,4 @@
-const { checkGameExistence, checkIfPlayer, checkFullGame, addPlayer, sendGameToRoom, addInitialUnit, setCommandsInGame, setPlayerCommands } = require('../app/routes/game_functions')
+const { checkGameExistence, checkIfPlayer, checkFullGame, addPlayer, sendGameToRoom, addInitialUnit, setCommandsInGame, setPlayerCommands, resolveRound, gameCleanup } = require('../app/routes/game_functions')
 const {joinRoom} = require('../app/routes/user_functions')
 
 
@@ -119,10 +119,12 @@ async function placeInitialUnit(territoryId, playerId, gameId) {
 
 async function issueCommands(commandObject, playerId, gameId) {
     const isLast = await setPlayerCommands(commandObject, playerId)
+    console.log('isLast? ',isLast )
     if (isLast) {
         const game = await setCommandsInGame(gameId)
         const resolvedGame = await resolveRound(game._id)
-        sendGameToRoom(resolvedGame.roomId, io)
+        const cleanedGame = await gameCleanup(resolvedGame._id)
+        sendGameToRoom(cleanedGame.roomId, io)
     } 
 }
 
