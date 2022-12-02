@@ -29,6 +29,10 @@ const commandSchema = new mongoose.Schema(
 			type: String,
 			enum: ['soldier', 'priest']
 		},
+		commanderSeason: {
+			type: String,
+			enum: ['spring', 'summer', 'autumn', 'winter']
+		},
 		soldiersMarching: Number,
 		priestsMarching: Number,
 	},
