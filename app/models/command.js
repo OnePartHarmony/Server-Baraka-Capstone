@@ -43,21 +43,23 @@ const commandSchema = new mongoose.Schema(
 )
 
 commandSchema.methods.executeCommand = async function executeCommand() {
+    let parent = this.parent()
+    console.log('command type: ', this.type)
+	let commander = parent._id
 
-	let commander = await Player.findById(this.issuedBy.id)
-
-	let origin = await Territory.findById(this.originTerritory.id)
+	let origin = await Territory.findById(this.originTerritory)
+    // console.log('look at me... Im the origin:', origin)
 
 	let target
 
 	if (this.newTerritory) {
-		target = await Territory.findById(this.newTerritory.id)
+		target = await Territory.findById(this.newTerritory)
 	}
 
     // saves all the pulled in documents
-    const updateDocs = function updateDocs() {
+    const updateDocs = () => {
         origin.save()
-        commander.save()
+        parent.save()
         if (target) {
             target.save()
         }
@@ -72,30 +74,33 @@ commandSchema.methods.executeCommand = async function executeCommand() {
 		target.controlledBy = origin.controlledBy
 	}
 
-	// CHECK IF COMMAND IS VALID
-	if (this.issuedBy !== origin.controlledBy) {
-
-		// command was cancelled, notify player
-		return false
-	}
+	// // CHECK IF COMMAND IS VALID
+	// if (this.issuedBy != origin.controlledBy) {
+    //     console.log(this.issuedBy)
+    //     console.log(origin.controlledBy)
+    //     console.log('valid command? ',this.issuedBy != origin.controlledBy)
+	// 	// command was cancelled, notify player
+	// 	return false
+	// }
 
 	switch (this.type) {
-		case 'advance':
-			// detectCombat will move units in or resolve combat then move units in
-			if (this.detectCombat()) {
-				// let originTerrFormation = PROMISEGetThisFormationPROMISE()
-				// let newTerrFormation = PROMISEGetThisFormationPROMISE()
+		// case 'advance':
+		// 	// detectCombat will move units in or resolve combat then move units in
+		// 	if (this.detectCombat()) {
+		// 		// let originTerrFormation = PROMISEGetThisFormationPROMISE()
+		// 		// let newTerrFormation = PROMISEGetThisFormationPROMISE()
 
-				// if (this.combat(origin, originTerrFormation, target, newTerrFormation)){
-				// 	unitsMarchIn()
-				// }
-				return "combat"
+		// 		// if (this.combat(origin, originTerrFormation, target, newTerrFormation)){
+		// 		// 	unitsMarchIn()
+		// 		// }
+		// 		return "combat"
 
-			} else {
-				unitsMarchIn()
-				updateDocs()
-                return true
-			}
+		// 	} else {
+		// 		unitsMarchIn()
+		// 		updateDocs()
+        //         return true
+		// 	}
+        //     break
 		case 'excise':
 			// this command cannot be a valid option in front end if territory wealth < 1 or no priests, this is backend double check
 			if (origin.wealth < 1 || !origin.priests) {
@@ -107,6 +112,7 @@ commandSchema.methods.executeCommand = async function executeCommand() {
                 updateDocs()
 				return true
 			}
+            break
 		case 'muster':
 			// this command cannot be a valid option in front end if territory population < 1 or no priests, this is backend double check
 			if (origin.population < 1 || !origin.priests) {
@@ -140,18 +146,24 @@ commandSchema.methods.executeCommand = async function executeCommand() {
 				updateDocs()
 				return true
 			}
+            break
 		case 'sow':
 			// this command cannot be a valid option in front end if population < 1, this is backend double check
 			if (origin.population < 1) {
 				console.log('you need peasants to sow')
 				return false
 			} else {
+                console.log('pre sow: ',origin.population,origin.abundance)
 				origin.population += 1
 				origin.abundance += 2
-                updateDocs()
+                console.log('post sow: ',origin.population,origin.abundance)
+                await updateDocs()
+                return true
 			}
+            break
 		default:
-			return false
+			return null
+            break
 	}
 }
 

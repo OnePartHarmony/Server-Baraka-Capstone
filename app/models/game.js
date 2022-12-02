@@ -65,7 +65,7 @@ gameSchema.methods.orderSeasons = function orderSeasons() {
 
 // this method just sets the next season based on available seasons
 gameSchema.methods.nextSeason = function nextSeason() {
-    let index = this.allSeasons.indexOf(this.currentSeason) += 1
+    let index = this.allSeasons.indexOf(this.currentSeason) + 1
     if (index === this.allSeasons.length) {
         index = 0
     }

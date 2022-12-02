@@ -32,4 +32,10 @@ const playerSchema = new mongoose.Schema(
 	}
 )
 
+playerSchema.methods.resetCommands = async function resetCommands() {
+    this.commands = []
+    return this.save()
+}
+
+
 module.exports = mongoose.model('Player', playerSchema)
