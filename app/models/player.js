@@ -38,4 +38,4 @@ playerSchema.methods.resetCommands = async function resetCommands() {
 }
 
 
-module.exports = mongoose.model('Player', playerSchema)
+module.exports = playerSchema
