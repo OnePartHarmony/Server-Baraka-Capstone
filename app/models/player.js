@@ -25,7 +25,10 @@ const playerSchema = new mongoose.Schema(
             required: true
         },
         formationName: String,
-        commands: [commandSchema],
+        advanceCommands: [commandSchema],
+        exciseCommands: [commandSchema],
+        musterCommands: [commandSchema],
+        sowCommands: [commandSchema],
     },
 	{
 		timestamps: true,

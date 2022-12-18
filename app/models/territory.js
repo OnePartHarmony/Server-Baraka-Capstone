@@ -23,14 +23,14 @@ const territorySchema = new mongoose.Schema(
 		abundance: Number,
         adjacents: [Number],
         controlledBy: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: 'Player',
+            type: String,
+            enum: ['spring', 'summer', 'autumn', 'winter']
 		},
         population: Number,
-        gameId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'game'
-        }
+        // gameId: {
+        //     type: mongoose.Schema.Types.ObjectId,
+        //     ref: 'game'
+        // }
     },
 	{
 		timestamps: true,

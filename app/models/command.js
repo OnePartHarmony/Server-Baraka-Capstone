@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const territorySchema = require('./territory')
 const Territory = require('./territory')
 
 const commandSchema = new mongoose.Schema(
@@ -10,18 +11,11 @@ const commandSchema = new mongoose.Schema(
 			required: true
 		},
 		originTerritory: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: 'Territory',
+			type: Number,
 			required: true
 		},
 		newTerritory: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: 'Territory'
-		},
-		issuedBy: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: 'Player',
-			required: true
+			type: Number
 		},
 		musteredUnit: {
 			type: String,
@@ -51,31 +45,33 @@ const commandSchema = new mongoose.Schema(
 )
 
 commandSchema.methods.executeCommand = async function executeCommand() {
+    const game = this.ownerDocument()
     // let parent = this.parent()
     // console.log('command type: ', this.type)
-	let commander = this.parent()
+	let commander = game.players.find(player => player.season === this.commanderSeason)
 
-	let origin = await Territory.findById(this.originTerritory)
+	let origin = game.territories.find(territory => {territory.number === this.originTerritory})
     // console.log('look at me... Im the origin:', origin)
 
 	let target
 
 	if (this.newTerritory) {
         // console.log('a new terr')
-		target = await Territory.findById(this.newTerritory)
+		target = game.territories.find(territory => {territory.number === this.newTerritory})
 	}
 
     // saves all the pulled in documents
     const updateDocs = () => {
-        origin.save()
-        commander.save()
-        if (target) {
-            target.save()
-        }
+        // origin.save()
+        // commander.save()
+        // if (target) {
+        //     target.save()
+        // }
+        game.save()
     }
 
 	// CHECK IF COMMAND IS VALID
-	if (!this.issuedBy.equals(origin.controlledBy)) {
+	if (!this.commanderSeason.equals(origin.controlledBy)) {
 		console.log('falseOwnership', this.issuedBy.equals(origin.controlledBy))
 		return false
 	}
@@ -84,7 +80,7 @@ commandSchema.methods.executeCommand = async function executeCommand() {
 		case 'advance':
 			// detectCombat will move units in or resolve combat then move units in
 			if (this.detectCombat(origin, target)) {
-                const fought = await this.combat(commander, origin, target)
+                const fought = await this.combat(game, commander, origin, target)
 				return fought
 			} else {
 				// unitsMarchIn()
@@ -97,7 +93,6 @@ commandSchema.methods.executeCommand = async function executeCommand() {
                 updateDocs()
                 return true
 			}
-            break
 		case 'excise':
 			// this command cannot be a valid option in front end if territory wealth < 1 or no priests, this is backend double check
 			if (origin.wealth < 1 || !origin.priests) {
@@ -109,7 +104,6 @@ commandSchema.methods.executeCommand = async function executeCommand() {
                 updateDocs()
 				return true
 			}
-            break
 		case 'muster':
 			// this command cannot be a valid option in front end if territory population < 1 or no priests, this is backend double check
 			if (origin.population < 1 || !origin.priests) {
@@ -143,7 +137,6 @@ commandSchema.methods.executeCommand = async function executeCommand() {
 				updateDocs()
 				return true
 			}
-            break
 		case 'sow':
 			// this command cannot be a valid option in front end if population < 1, this is backend double check
 			if (origin.population < 1) {
@@ -154,13 +147,11 @@ commandSchema.methods.executeCommand = async function executeCommand() {
 				origin.population += 1
 				origin.abundance += 2
                 console.log('post sow: ',origin.population,origin.abundance)
-                await updateDocs()
+                updateDocs()
                 return true
 			}
-            break
 		default:
 			return null
-            break
 	}
 }
 
@@ -180,7 +171,7 @@ commandSchema.methods.detectCombat = function detectCombat(origin, target) {
 }
 
 // potential combat function
-commandSchema.methods.combat = async function combat(commander, origin, target) {
+commandSchema.methods.combat = async function combat(game, commander, origin, target) {
 
     const attackFormation = commander.formationName
 	/////NEED a way to get defender formation
@@ -190,9 +181,7 @@ commandSchema.methods.combat = async function combat(commander, origin, target) 
 
     // saves all the pulled in documents
     const updateDocs = () => {
-        origin.save()
-        commander.save()
-        target.save()
+        game.save()
     }
 
 	// for moving marching units from one territory into another

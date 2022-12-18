@@ -1,6 +1,7 @@
 const { ObjectId } = require('mongodb')
 const mongoose = require('mongoose')
 const { orderOfSeasons } = require('../constants')
+const commandSchema = require('./command')
 const playerSchema = require('./player')
 const territorySchema = require('./territory')
 
@@ -38,7 +39,7 @@ const gameSchema = new mongoose.Schema(
             required: true
         },
         placementOrder: [],
-        pendingCommands: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Player.commands' }],
+        pendingCommands: [commandSchema],
         host: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: 'User',
