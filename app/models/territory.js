@@ -37,4 +37,4 @@ const territorySchema = new mongoose.Schema(
 	}
 )
 
-module.exports = mongoose.model('Territory', territorySchema)
+module.exports = territorySchema

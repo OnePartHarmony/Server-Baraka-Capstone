@@ -1,6 +1,8 @@
 const { ObjectId } = require('mongodb')
 const mongoose = require('mongoose')
 const { orderOfSeasons } = require('../constants')
+const playerSchema = require('./player')
+const territorySchema = require('./territory')
 
 const gameSchema = new mongoose.Schema(
 	{
@@ -15,8 +17,8 @@ const gameSchema = new mongoose.Schema(
             // include 1 in this enum for quick testing of auto-initialize
             enum: [1, 2, 3, 4]
         },
-		territories: [{ type: ObjectId, ref: 'Territory' }],
-		players: [{ type: ObjectId, ref: 'Player' }],
+		territories: [territorySchema],
+		players: [playerSchema],
         command: {
             type: Boolean,
             required: true,
