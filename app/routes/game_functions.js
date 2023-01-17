@@ -1,10 +1,9 @@
 // pull in Mongoose model for games
 const Game = require('../models/game')
 const Player = require('../models/player')
+
 // this is a collection of methods that help us detect situations when we need
 // to throw a custom error
-const { ObjectId } = require('mongodb')
-
 const customErrors = require('../../lib/custom_errors')
 
 const { unitStats, orderOfSeasons } = require('../constants')
@@ -126,21 +125,20 @@ async function checkGameExistence(roomId, addToCallback) {
 
 //check if user is a player in Game
 async function checkIfPlayer(gameId, user, addToCallback) {
-    const game = await Game.findById(gameId)    
-    //     .populate({
-    //         path : 'players',
-    //             populate : {
-    //                 path : 'user'
-    //             }
-    //     })
+    const game = await Game.findById(gameId)
+    //populate user info to check against username
+    // I wanted to check this against ids, but they aren't referenced the same way
+    //using ObjectId(user._id) looks identical to player.user, yet does not evaluate as equal
+        .populate({
+            path : 'players',
+                populate : {
+                    path : 'user'
+                }
+        })
         .then(game => {
             let foundPlayer = false
-            game.players.forEach(player => {
-            // I wanted to check this against ids, but they aren't referenced the same way
-                console.log('This is the user Id as seen by the game: ', player.user)
-                console.log('This is the user Id as seen by the user: ', user.ObjectId())
-                console.log("are they the same? ", player.user === user.ObjectId())
-                if (player.user === user.ObjectId()) {
+            game.players.forEach(player => {            
+                if (player.user.username === user.username) {
                     foundPlayer = true
                 }
             })
@@ -151,8 +149,7 @@ async function checkIfPlayer(gameId, user, addToCallback) {
 }
 
 ////check if game is full (or if new player can be added)
-async function checkFullGame(gameId, addToCallback) {
-    
+async function checkFullGame(gameId, addToCallback) {    
     const full = await Game.findById(gameId)
         .then(game => {
             if (game.numberOfPlayers === game.players.length){
@@ -285,16 +282,17 @@ const setPlayerCommands = async (commandObject, playerId) => {
 const gameCleanup = async (gameId) => {
     // const game = await 
     const game = await Game.findById(gameId)
-    players = game.players
+    // players = game.players
         // .then(game => {
-            players.forEach(playerId => {
-                Player.findById(playerId)
-                    .then(player => {
-                        return player.resetCommands()
+            // players.forEach(playerId => {
+                // Player.findById(playerId)
+                //     .then(player => {
+        game.players.forEach(player => {
+                    return player.resetCommands()
                         // player.formationName = null
                         // player.commands = []
                         // return player.save()
-                    })
+                    // })
             })
         //     return game
         // })
