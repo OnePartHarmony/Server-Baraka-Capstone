@@ -14,10 +14,7 @@ const { unitStats, orderOfSeasons } = require('../constants')
 // we'll use this function to send 404 when non-existant document is requested
 const handle404 = customErrors.handle404
 
-const initializeMap = require('../scripts/scripts')
-const game = require('../models/game')
-// const adjacents = require('../constants')
-// const game = require('../models/game')
+
 
 
 // script for getting the current populated game data and returning it as an object
@@ -51,7 +48,6 @@ const initialPlacement = async (roomId, playerSeason, territoryNumber) => {
     if (game.placementOrder[0] === player.season && (!territory.controlledBy || territory.controlledBy === player.season)) {
         territory.controlledBy = player.season
         territory.priest += 1
-        // await territory.save()
         const newPlacementOrder = game.placementOrder.slice()
         newPlacementOrder.splice(0,1)
         game.placementOrder = newPlacementOrder
@@ -68,7 +64,6 @@ const initialPlacement = async (roomId, playerSeason, territoryNumber) => {
 
 // Script for initializing game
 const initializeGameBoard = async (gameId, io) => {
-    // const addTerritories = initializeMap(gameId)
     Game.findById(gameId)
         .then(game => {
             game.orderSeasons()
@@ -99,19 +94,6 @@ async function addPlayer(roomId, userId, io) {
         })
         .then(game => {
             // then we create the player...
-            // Player.create({user: userId, season: availableSeasons[randIndex]})
-            //     .then(player => {
-            //             // and modify the game document to add the player to the game and the season to the list of seasons in game                        
-            //             game.players.push(player._id)
-            //             game.allSeasons.push(availableSeasons[randIndex])
-            //             return game.save()
-            //             })
-                
-            //     .then(game => {
-            //         if (game.players.length === game.numberOfPlayers) {
-            //             initializeGameBoard(game._id, io)
-            //         }
-            //     })
             game.players.push({user: userId, season: availableSeasons[randIndex]})
             game.allSeasons.push(availableSeasons[randIndex])
             return game.save()

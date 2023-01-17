@@ -23,13 +23,11 @@ const initializeMap = (gameId) => {
     for (let i = 0; i < adjacents.length; i++) {
         let type = ''
         let wealth, abundance, population = 0
-        // if (i > 0) {
             if (i > 0 && arr[i-1].type === 'water') {
                 type = biomes[randomRange(0,2)]
             } else {
                 type = biomes[randomRange(0,3)]
             }
-        // }
         switch (type) {
             case 'field':
                 wealth = randomRange(1,2)
@@ -62,7 +60,6 @@ const initializeMap = (gameId) => {
             }
         )
     }
-    // console.log(arr)
     return arr    
 }
 

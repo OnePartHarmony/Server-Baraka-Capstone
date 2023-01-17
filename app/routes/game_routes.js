@@ -7,13 +7,10 @@ const passport = require('passport')
 const Game = require('../models/game')
 const User = require('../models/user')
 const Territory = require('../models/territory')
-const Unit = require('../models/unit')
 const Player = require('../models/player')
 // this is a collection of methods that help us detect situations when we need
 // to throw a custom error
 const customErrors = require('../../lib/custom_errors')
-
-const { unitStats, orderOfSeasons } = require('../constants')
 
 // we'll use this function to send 404 when non-existant document is requested
 const handle404 = customErrors.handle404
@@ -33,7 +30,6 @@ const requireToken = passport.authenticate('bearer', { session: false })
 const router = express.Router()
 
 const initializeMap = require('../scripts/scripts')
-const adjacents = require('../constants')
 const {generateRoomId, addPlayer} = require('./game_functions')
 
 
@@ -129,23 +125,23 @@ const {generateRoomId, addPlayer} = require('./game_functions')
 // }
 
 
-const buildTerritories = async (gameId) => {
-    const addTerritories = initializeMap(gameId)
-    await addTerritories.forEach(territory => {
-        Territory.create(territory)
-            .then(territory => {
-                let terrId = territory._id
-                // we have to find the game each time to prevent parallel saves unfortunatly
-                // may revisit by building an array than adding the whole array at once...
-                Game.findById(gameId)
-                    .then(game => {
-                        game.territories.push(terrId)
-                        return game.save()
-                    })
-            })
-    })
-    return
-}
+// const buildTerritories = async (gameId) => {
+//     const addTerritories = initializeMap(gameId)
+//     await addTerritories.forEach(territory => {
+//         Territory.create(territory)
+//             .then(territory => {
+//                 let terrId = territory._id
+//                 // we have to find the game each time to prevent parallel saves unfortunatly
+//                 // may revisit by building an array than adding the whole array at once...
+//                 Game.findById(gameId)
+//                     .then(game => {
+//                         game.territories.push(terrId)
+//                         return game.save()
+//                     })
+//             })
+//     })
+//     return
+// }
 
 ////////////////////////////////////////
 // END Scripts for Routes
@@ -216,14 +212,15 @@ router.post('/games', requireToken, (req, res, next) => {
     // set owner of new game to be current user
     req.body.game.host = req.body.user._id
 	Game.create(req.body.game)
-        .then((game) => {            
+        .then((game) => {
             addPlayer(roomId, req.body.user._id )
+            game.territories = initializeMap(game._id)
             return game           
         })
-        .then((game) => {
-            buildTerritories(game._id)
-            return game
-        })
+        // .then((game) => {
+        //     buildTerritories(game._id)
+        //     return game
+        // })
 		// respond to succesful `create` with status 201 and JSON of new "game"
 		.then((game) => {
             // add roomId to user document
