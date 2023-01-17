@@ -86,7 +86,7 @@ router.post('/games', requireToken, (req, res, next) => {
         .then((game) => {
             addPlayer(roomId, req.body.user._id )
             game.territories = initializeMap(game._id)
-            return game           
+            return game.save()
         })
 		// respond to succesful `create` with status 201 and JSON of new "game"
 		.then((game) => {
@@ -133,7 +133,7 @@ router.patch('/games/:id', requireToken, removeBlanks, (req, res, next) => {
 router.delete('/games/:id', requireToken, (req, res, next) => {
 	Game.findById(req.params.id)
 		.then(handle404)
-		.then((game) => {
+		// .then((game) => {
 			// throw an error if current user doesn't own `game`
 			// requireOwnership(req, game)
         .then(game => {
