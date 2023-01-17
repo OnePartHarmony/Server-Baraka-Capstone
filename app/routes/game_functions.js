@@ -285,16 +285,17 @@ const setPlayerCommands = async (commandObject, playerId) => {
 const gameCleanup = async (gameId) => {
     // const game = await 
     const game = await Game.findById(gameId)
-    players = game.players
+    // players = game.players
         // .then(game => {
-            players.forEach(playerId => {
-                Player.findById(playerId)
-                    .then(player => {
-                        return player.resetCommands()
+            // players.forEach(playerId => {
+                // Player.findById(playerId)
+                //     .then(player => {
+        game.players.forEach(player => {
+                    return player.resetCommands()
                         // player.formationName = null
                         // player.commands = []
                         // return player.save()
-                    })
+                    // })
             })
         //     return game
         // })
