@@ -1,7 +1,5 @@
 // pull in Mongoose model for games
 const Game = require('../models/game')
-const Territory = require('../models/territory')
-const Unit = require('../models/unit')
 const Player = require('../models/player')
 // this is a collection of methods that help us detect situations when we need
 // to throw a custom error
