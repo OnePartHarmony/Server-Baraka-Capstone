@@ -20,6 +20,23 @@ async function getPopulatedGame(roomId) {
 
     // Game.findById(gameId)
     const popGame = await Game.findOne({ roomId: roomId })
+        //populating player username still needed for displaying on front end 1/17/23 HB
+        .populate({
+            path: 'players',
+                populate : {
+                    path: 'user', select : 'username'
+                }
+        })
+        .populate({
+            //not sure if territory username used anywhere (yet) 1/17/23 HB
+            path: 'territories',    
+                populate : {
+                    path : 'controlledBy',
+                            populate : {
+                                path: 'user', select : 'username'
+                            }
+                }
+        })
 		.then(handle404)
 		.then((game) => {            
             // console.log(game)
